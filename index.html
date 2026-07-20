@@ -30,14 +30,27 @@
   input{font-family:Nunito,sans-serif;font-weight:800;color:var(--ink);background:var(--paper);
     border:1.5px solid var(--line);border-radius:13px;padding:12px 14px;outline:none;width:100%;font-size:16px}
   input:focus{border-color:var(--go);background:#fff;box-shadow:0 0 0 4px var(--wash)}
-  .app{max-width:620px;margin:0 auto;padding:0 16px 116px}
+  .app{max-width:620px;margin:0 auto;padding:18px 16px 116px}
 
-  .head{padding:24px 0 2px}
-  .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800}
-  .head h1{font-size:28px;margin-top:7px}
-  .subdate{font-size:13px;font-weight:700;color:var(--muted);margin-top:5px}
-  .subdate[hidden]{display:none}
+  .topbar{position:sticky;top:0;z-index:25;background:#fff;border-bottom:1.5px solid var(--line)}
+  .tinner{max-width:620px;margin:0 auto;padding:17px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .greet{font-family:Nunito,sans-serif;font-weight:800;font-size:17px;color:var(--ink);letter-spacing:-.01em}
+  .tdate{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
   .quad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sc{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:18px;position:relative;box-shadow:var(--shadow)}
+  .sc .ico{width:44px;height:44px;border-radius:14px;background:var(--wash);display:flex;align-items:center;justify-content:center}
+  .sc .ico svg{width:21px;height:21px;stroke:var(--go);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .sc .chip{position:absolute;top:17px;right:16px;background:var(--wash);color:var(--go);
+    border-radius:99px;padding:5px 10px;font-size:10px;font-weight:900;letter-spacing:.04em}
+  .sc b{display:block;font-family:'Varela Round',sans-serif;font-size:30px;line-height:1;margin-top:16px}
+  .sc b.sm{font-size:21px;margin-top:20px}
+  .sc span{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-top:5px}
+  .statusbox{background:var(--wash);border-radius:16px;padding:16px;margin-top:12px}
+  .statusbox .dot{display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--go);margin-right:8px;vertical-align:middle}
+  .statusbox b{font-size:15px;font-weight:800}
+  .statusbox span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-top:5px}
+  .tagchip{display:inline-block;background:var(--wash);color:var(--go);border-radius:99px;
+    padding:7px 14px;font-size:12px;font-weight:900;letter-spacing:.03em}
   .stat{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
   .stat b{display:block;font-family:'Varela Round',sans-serif;font-size:27px;line-height:1}
   .stat b.sm{font-size:20px}
@@ -74,26 +87,21 @@
   .ptab td:last-child{text-align:right;font-family:'Varela Round',sans-serif;font-weight:400;font-size:16px;color:var(--ink);white-space:nowrap}
   .ptab tr:last-child td{border-bottom:0}
 
-  .weekrow{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px}
-  .weekrow .lab{font-family:'Varela Round',sans-serif;font-size:15px}
-  .weekrow .sub{font-size:11px;color:var(--muted);font-weight:700}
-  .nav{display:flex;gap:6px}
-  .nav button{background:#fff;border:1.5px solid var(--line);color:var(--ink);border-radius:10px;width:34px;height:34px;font-size:15px;line-height:1}
-  .nav button:hover:not(:disabled){background:var(--mint);border-color:var(--mint)}
-  .nav button:disabled{color:var(--line);cursor:default}
-  .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:18px}
-  .pip{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:8px 2px;text-align:center;cursor:pointer;transition:all .16s}
-  .pip:hover{border-color:var(--go)}
-  .pip .d{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:800}
-  .pip .n{font-family:'Varela Round',sans-serif;font-size:16px;margin:2px 0 3px}
-  .pip .t{font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-  .pip.rest .t{color:var(--rest)}
-  .pip.full{background:var(--wash);border-color:var(--go)}
-  .pip.full .t{color:var(--go)}
-  .pip.today{border-color:var(--ink);border-width:2.5px}
-  .pip.future{opacity:.5}
-  .pip.unset .t{color:var(--line)}
-
+  .daynav{display:flex;align-items:stretch;gap:8px;margin-bottom:16px}
+  .arrow{width:46px;flex-shrink:0;background:#fff;border:1.5px solid var(--line);color:var(--ink);
+    border-radius:16px;font-size:17px;line-height:1}
+  .arrow:hover:not(:disabled){background:var(--mint);border-color:var(--mint)}
+  .arrow:disabled{color:var(--line);cursor:default}
+  .daymain{flex:1;min-width:0;background:#fff;border:1.5px solid var(--line);border-radius:18px;
+    padding:14px 16px;text-align:left;box-shadow:var(--shadow)}
+  .daymain:hover{border-color:var(--go)}
+  .daymain .dd{font-family:'Varela Round',sans-serif;font-size:18px;color:var(--ink);line-height:1.2}
+  .daymain .ds{display:flex;align-items:center;gap:7px;margin-top:6px}
+  .daymain .ds em{font-style:normal;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--go);background:var(--wash);border-radius:99px;padding:4px 9px}
+  .daymain .ds em.grey{color:var(--rest);background:var(--paper)}
+  .daymain .ds em.amber{color:var(--gold);background:#FBF4E6}
+  .daymain .ds span{font-size:12px;font-weight:700;color:var(--muted)}
   .card{background:#fff;border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px;margin-bottom:12px}
   .card h2{font-size:21px}
   .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:7px}
@@ -236,19 +244,21 @@
 </head>
 <body>
 
-<div class="app">
-  <div class="head">
-    <div class="kicker" id="kicker">Fatu's health tracker</div>
-    <h1 id="dateLabel"></h1>
-    <div class="subdate" id="subDate"></div>
+<header class="topbar">
+  <div class="tinner">
+    <div class="greet" id="greetLine"></div>
+    <div class="tdate" id="topDate"></div>
   </div>
+</header>
+
+<div class="app">
 
   <div class="chrome" id="chrome">
-    <div class="weekrow">
-      <div><div class="lab" id="weekLab"></div><div class="sub" id="weekSub"></div></div>
-      <div class="nav"><button id="prevWk">&#8249;</button><button id="nextWk">&#8250;</button></div>
+    <div class="daynav">
+      <button class="arrow" id="prevDay" aria-label="Previous day">&#8249;</button>
+      <button class="daymain" id="dayMain" data-openday="1"></button>
+      <button class="arrow" id="nextDay" aria-label="Next day">&#8250;</button>
     </div>
-    <div class="strip" id="strip"></div>
   </div>
 
   <section class="page" id="p-home"></section>
@@ -305,11 +315,16 @@ const DEFAULT_CFG={
 };
 
 let state={cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),logs:{},plan:{},seen:[]};
-let page='home', viewDay=null, weekOffset=0;
+let page='home', viewDay=null;
 
 /* ================= dates ================= */
+const TZ='Africa/Kampala';   // East Africa Time, UTC+3, no daylight saving
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-const todayStr=()=>iso(new Date());
+// today and the hour come from Kampala, whatever the phone or browser is set to
+const todayStr=()=>new Intl.DateTimeFormat('en-CA',
+  {timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const hourNow=()=>Number(new Intl.DateTimeFormat('en-GB',
+  {timeZone:TZ,hour:'2-digit',hour12:false}).format(new Date()));
 const ord=d=>(d>3&&d<21)?d+'th':d+({1:'st',2:'nd',3:'rd'}[d%10]||'th');
 const parse=s=>new Date(s+'T00:00');
 const longDate=s=>{const d=parse(s);return DAYNAMES[d.getDay()]+' '+ord(d.getDate())+' '+MONTHS[d.getMonth()];};
@@ -364,10 +379,6 @@ function badgeState(){
   });
 }
 const badgeXP=()=>badgeState().filter(b=>b.got).reduce((s,b)=>s+b.pts,0);
-function missionXP(){
-  const mons=[...new Set(Object.keys(state.logs).concat(Object.keys(state.plan)).map(mondayOf))];
-  return mons.reduce((s,m)=>s+missionsFor(m).filter(x=>x.have>=x.need).reduce((a,x)=>a+x.pts,0),0);
-}
 const totalXP=()=>workXP()+badgeXP()+missionXP();
 
 function levelFromXP(xp){
@@ -463,22 +474,42 @@ const BADGES=[
   B('Planner','Plan 30 days ahead of time',1,()=>({have:Object.keys(state.plan).length,need:30}))
 ];
 
-/* ================= weekly missions ================= */
-function missionsFor(mon){
-  const days=daysOfWeekFrom(mon);
-  const wn=weekNo(mon);
-  const pool=[
-    {n:'Clear 3 sets',        pts:120, get:()=>({have:weekSets(mon),need:3})},
-    {n:'Clear 4 sets',        pts:170, get:()=>({have:weekSets(mon),need:4})},
-    {n:'Walk 5 days at goal', pts:140, get:()=>({have:days.filter(d=>got('steps',d)>=state.cfg.stepGoal).length,need:5})},
-    {n:'Take '+state.cfg.restTarget+' rest days', pts:60, get:()=>({have:days.filter(d=>setOn(d)==='rest').length,need:state.cfg.restTarget})},
-    {n:'Plan every day',      pts:90,  get:()=>({have:days.filter(d=>setOn(d)).length,need:7})},
-    {n:'Three days running',  pts:130, get:()=>{let b=0,r=0;days.forEach(d=>{const ok=setOn(d)==='rest'||setDone(d);r=ok?r+1:0;b=Math.max(b,r);});return {have:b,need:3};}},
-    {n:'Both sets this week', pts:100, get:()=>({have:[...new Set(days.filter(setDone).map(d=>setOn(d)))].length,need:2})},
-    {n:'One session over target', pts:110, get:()=>({have:days.filter(d=>{const l=exOf(d);return l.length&&l.every(k=>got(k,d)>=state.cfg.per[k]*1.25);}).length,need:1})}
+/* ================= daily missions ================= */
+// built from what you chose for that day, so they never ask for a set you did not pick
+function missionsFor(d){
+  const sel=setOn(d), goal=state.cfg.stepGoal, steps=got('steps',d);
+  const stepMission={n:'Walk '+goal.toLocaleString()+' steps', pts:25,
+    have:Math.min(steps,goal), need:goal};
+
+  if(!sel){
+    return [
+      {n:'Choose today: Juu, Chini or Rest', pts:10, have:0, need:1},
+      stepMission
+    ];
+  }
+  if(sel==='rest'){
+    const tom=addDays(d,1);
+    return [
+      stepMission,
+      {n:'Rest day taken', pts:10, have:1, need:1},
+      {n:'Plan tomorrow', pts:15, have:setOn(tom)?1:0, need:1}
+    ];
+  }
+  const list=exOf(d);
+  const atTarget=list.filter(k=>got(k,d)>=state.cfg.per[k]).length;
+  const beaten=list.filter(k=>got(k,d)>=state.cfg.per[k]*1.5).length;
+  const started=list.filter(k=>got(k,d)>0).length;
+  return [
+    {n:'Start the '+setName(d)+' set', pts:10, have:Math.min(started,1), need:1},
+    {n:'Finish all '+list.length+' exercises', pts:40, have:atTarget, need:list.length},
+    stepMission,
+    {n:'Beat one target by half', pts:30, have:Math.min(beaten,1), need:1}
   ];
-  const idx=[(wn*3)%pool.length,(wn*3+1)%pool.length,(wn*3+2)%pool.length];
-  return idx.map(i=>{const m=pool[i],p=m.get();return {n:m.n,pts:m.pts,have:Math.min(p.have,p.need),need:p.need};});
+}
+function missionXP(){
+  const days=[...new Set(Object.keys(state.logs).concat(Object.keys(state.plan)))]
+    .filter(d=>d<=todayStr());
+  return days.reduce((s,d)=>s+missionsFor(d).filter(m=>m.have>=m.need).reduce((a,m)=>a+m.pts,0),0);
 }
 
 /* ================= storage ================= */
@@ -547,7 +578,6 @@ function openDayModal(d){
     <button class="cancel" data-closemodal="1">Close</button>`;
   document.getElementById('dayModal').hidden=false;
   document.getElementById('scrim').hidden=false;
-  document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>pickDay(b.dataset.pick,b));
   document.querySelector('[data-closemodal]').onclick=closeModal;
 }
 function closeModal(){
@@ -569,6 +599,21 @@ async function pickDay(val,btn){
   },230);
 }
 document.getElementById('scrim').onclick=closeModal;
+// one delegated listener, so taps keep working after every re-render
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-day],[data-pick],[data-opentoday],[data-openday]');
+  if(!t) return;
+  if(t.hasAttribute('data-day')){
+    if(page==='home') openDayModal(t.dataset.day);
+    else { viewDay=t.dataset.day; render(); }
+  } else if(t.hasAttribute('data-opentoday')){
+    openDayModal(todayStr());
+  } else if(t.hasAttribute('data-openday')){
+    openDayModal(viewDay);
+  } else {
+    pickDay(t.dataset.pick,t);
+  }
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
 
 /* ================= chrome ================= */
@@ -581,31 +626,40 @@ function chooser(d,jump){
   </div>`;
 }
 function greeting(){
-  const h=new Date().getHours();
+  const h=hourNow();
   return h<12?'Good morning':(h<17?'Good afternoon':'Good evening');
 }
+const TITLES={home:'',body:'Body',core:'Stomach',prog:'Progress'};
+const weekOf=d=>daysOfWeekFrom(mondayOf(d));
+const MAXAHEAD=28;
+
 function renderChrome(){
   const onHome = page==='home' && viewDay===todayStr();
-  document.getElementById('kicker').textContent = onHome?'Fatu\u2019s health tracker':'Fatu\u2019s health tracker';
-  document.getElementById('dateLabel').textContent = onHome ? greeting()+', Fatu' : longDate(viewDay);
-  const sd=document.getElementById('subDate');
-  sd.textContent = longDate(viewDay);
-  sd.hidden = !onHome;
+  const d0=parse(viewDay);
+  const shortD = DAYNAMES[d0.getDay()].slice(0,3)+' '+ord(d0.getDate())+' '+MONTHS[d0.getMonth()].slice(0,3);
+  document.getElementById('greetLine').textContent =
+    onHome ? greeting()+', Fatu' : (page==='prog' ? 'Progress' : longDate(viewDay));
+  document.getElementById('topDate').textContent =
+    onHome ? shortD : (page==='prog' ? '' : TITLES[page]);
   document.getElementById('chrome').hidden = page==='prog';
-  const days=weekDays(weekOffset);
-  document.getElementById('weekLab').textContent='Week '+weekNo(days[0]);
-  document.getElementById('weekSub').textContent=midDate(days[0])+' to '+midDate(days[6]);
-  document.getElementById('nextWk').disabled=weekOffset>=0;
-  document.getElementById('strip').innerHTML=days.map(d=>{
-    const s=setOn(d), rest=s==='rest', full=setDone(d), future=d>todayStr();
-    return `<button class="pip ${rest?'rest':''} ${full?'full':''} ${!s?'unset':''} ${d===viewDay?'today':''} ${future?'future':''}" data-day="${d}">
-      <div class="d">${DAYNAMES[parse(d).getDay()].slice(0,3)}</div>
-      <div class="n">${parse(d).getDate()}</div>
-      <div class="t">${!s?'&#183;':(rest?'Rest':(full?'Done':setName(d)))}</div>
-    </button>`;}).join('');
-  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{
-    if(page==='home') return openDayModal(b.dataset.day);
-    viewDay=b.dataset.day; render();});
+
+  const sel=setOn(viewDay);
+  let tag, tagClass, note;
+  if(!sel){ tag='Not set'; tagClass='grey'; note='Tap to choose'; }
+  else if(sel==='rest'){ tag='Rest'; tagClass='grey'; note='Counts towards your streak'; }
+  else {
+    const l=exOf(viewDay), n=l.filter(k=>got(k,viewDay)>=state.cfg.per[k]).length;
+    tag=setName(viewDay); tagClass = n===l.length?'':'amber';
+    note = n===l.length ? 'Set complete' : n+' of '+l.length+' done';
+  }
+  const when = viewDay===todayStr() ? 'Today'
+             : (viewDay<todayStr() ? 'Earlier day' : 'Coming up');
+  document.getElementById('dayMain').innerHTML=
+    `<div class="dd">${longDate(viewDay)}</div>
+     <div class="ds"><em class="${tagClass}">${tag}</em><span>${when} &middot; ${note}</span></div>`;
+
+  document.getElementById('prevDay').disabled=false;
+  document.getElementById('nextDay').disabled = viewDay >= addDays(todayStr(),MAXAHEAD);
 }
 
 /* ================= pages ================= */
@@ -618,71 +672,70 @@ function exRows(list){
       <div class="in"><input type="number" min="0" inputmode="numeric" placeholder="0" value="${have||''}" data-log="${k}"></div>
     </div>`;}).join('');
 }
+const ICO={
+  points:'<path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9l6-.9z"/>',
+  level:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H3"/>',
+  flame:'<path d="M12 3c0 3-3 4-3 7a3 3 0 0 0 6 0c0-1-.6-2-.6-2 2 1.4 3.6 3.4 3.6 6a6 6 0 0 1-12 0c0-4 3-6 6-11z"/>',
+  sets:'<rect x="3.5" y="5" width="17" height="14" rx="4"/><path d="M8 9.5v5M12 8.5v7M16 9.5v5"/>'
+};
+function statCard(icon,chip,value,label,small){
+  return `<div class="sc">
+    <div class="ico"><svg viewBox="0 0 24 24">${ICO[icon]}</svg></div>
+    ${chip?`<span class="chip">${chip}</span>`:''}
+    <b class="${small?'sm':''}">${value}</b><span>${label}</span>
+  </div>`;
+}
 function homePage(){
   const xp=totalXP(), L=levelFromXP(xp);
-  const days=weekDays(weekOffset);
+  const days=weekOf(viewDay);
   const wkSets=days.filter(d=>setDone(d)).length;
   const steps=got('steps',viewDay);
   const bs=badgeState(), earned=bs.filter(b=>b.got), gotN=earned.length;
   const next=bs.filter(b=>!b.got).sort((a,b)=>(b.have/b.need)-(a.have/a.need))[0];
-  const ms=missionsFor(mondayOf(todayStr()));
+  const ms=missionsFor(viewDay);
   const msDone=ms.filter(m=>m.have>=m.need).length;
+
+  const sel=setOn(viewDay);
+  let statusTitle, statusSub, statusChip;
+  if(!sel){
+    statusChip='Not set'; statusTitle='Today is open';
+    statusSub='Tap a date above, or use the button, to pick Juu, Chini or Rest.';
+  } else if(sel==='rest'){
+    statusChip='Rest'; statusTitle='Resting today';
+    statusSub='Counts towards your streak. Steps still count.';
+  } else {
+    const l=exOf(viewDay), d=l.filter(k=>got(k,viewDay)>=state.cfg.per[k]).length;
+    statusChip=setName(viewDay); statusTitle=d+' of '+l.length+' exercises done';
+    statusSub=d===l.length?'Set complete. Nothing else owed today.':'Open Stomach to fill in the rest.';
+  }
 
   return `
   <div class="quad">
-    <div class="stat accent"><b>${xp.toLocaleString()}</b><span>points</span></div>
-    <div class="stat"><b class="sm">Level ${L.lv}</b><span>${rankFor(L.lv)}</span></div>
-    <div class="stat accent"><b>${streak()}</b><span>day streak</span></div>
-    <div class="stat"><b>${wkSets}</b><span>sets this week</span></div>
-  </div>
-  <div class="card" style="margin-top:12px">
-    <div class="linkrow" style="margin-top:0">
-      <span style="font-size:14px;font-weight:800">${(()=>{const s2=setOn(viewDay);
-        if(!s2) return 'Today is not set yet';
-        if(s2==='rest') return 'Today is a rest day';
-        const l=exOf(viewDay), d=l.filter(k=>got(k,viewDay)>=state.cfg.per[k]).length;
-        return setName(viewDay)+' set &middot; '+d+' of '+l.length+' done';})()}</span>
-      <button class="linkbtn" data-go="core">Stomach &#8250;</button>
-    </div>
+    ${statCard('points','', xp.toLocaleString(),'Points')}
+    ${statCard('level','Level '+L.lv, rankFor(L.lv),'Rank',true)}
+    ${statCard('flame', streak()?'running':'', streak(),'Day streak')}
+    ${statCard('sets', steps.toLocaleString()+' steps', wkSets,'Sets this week')}
   </div>
 
   <div class="card" style="margin-top:12px">
-    <div class="cap">This week's missions &middot; ${msDone} of ${ms.length} done</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h2 style="font-size:19px">Today</h2>
+      <span class="tagchip">${statusChip}</span>
+    </div>
+    <div class="statusbox">
+      <b><span class="dot"></span>${statusTitle}</b>
+      <span>${statusSub}</span>
+    </div>
+    <button class="allbtn" data-opentoday="1">${sel?'Change today':'Set today'}</button>
+  </div>
+
+  <div class="card">
+    <div class="cap">Today's missions &middot; ${msDone} of ${ms.length} done</div>
     ${ms.map(m=>{const d=m.have>=m.need;return `<div class="mini-mission ${d?'done':''}">
       <div class="mm"><b>${d?'&#10003; ':''}${m.n}</b>
         <div class="tbar"><i style="width:${m.have/m.need*100}%"></i></div></div>
       <div class="cnt">${m.have}/${m.need}</div>
     </div>`;}).join('')}
-  </div>
-
-  <div class="card">
-    <div class="cap">Levels and ranks</div>
-    <p class="lede" style="margin-bottom:8px">Every level costs 60 points more than the one before it.</p>
-    ${RANKS.map((r,i)=>{
-      const lv=r[0], name=r[1], cost=xpAtLevel(lv);
-      const nextLv=RANKS[i+1]?RANKS[i+1][0]:null;
-      const reached=L.lv>=lv;
-      const here=reached&&(!nextLv||L.lv<nextLv);
-      return `<div class="lad ${reached?'reached':''} ${here?'here':''}">
-        <div class="num">${lv}</div>
-        <div class="txt"><b>${name}</b><span>${cost===0?'from the start':cost.toLocaleString()+' points'}</span></div>
-        <div class="st">${here?'you are here':(reached?'passed':(xpAtLevel(lv)-xp).toLocaleString()+' to go')}</div>
-      </div>`;}).join('')}
-  </div>
-
-  <div class="card">
-    <div class="cap">How points are earned</div>
-    <table class="ptab"><tbody>
-      <tr><td>An exercise at its target</td><td>12</td></tr>
-      <tr><td>An exercise beaten by half</td><td>18</td></tr>
-      <tr><td>An exercise part done</td><td>5</td></tr>
-      <tr><td>Clearing a whole set</td><td>15</td></tr>
-      <tr><td>Steps, per 500 walked</td><td>2</td></tr>
-      <tr><td>A rest day you chose</td><td>4</td></tr>
-      <tr><td>A badge, by tier</td><td>50 &middot; 120 &middot; 250</td></tr>
-      <tr><td>A weekly mission</td><td>60 to 170</td></tr>
-    </tbody></table>
-    <p class="metaline">A full Chini session with 2,000 steps is about 71 points.</p>
   </div>
 
   <div class="card">
@@ -700,8 +753,8 @@ function homePage(){
 }
 
 function bodyPage(){
-  const steps=got('steps',viewDay), days=weekDays(weekOffset);
-  const wk=days.reduce((s,d)=>s+got('steps',d),0);
+  const steps=got('steps',viewDay), days=weekOf(viewDay);
+  const wkTotal=days.reduce((s,d)=>s+got('steps',d),0);
   const hit=days.filter(d=>got('steps',d)>=state.cfg.stepGoal).length;
   return `
   <div class="card">
@@ -713,7 +766,7 @@ function bodyPage(){
       ${steps?`<button class="ghost" data-clearsteps="1">Clear this day</button>`:''}</div>
   </div>
   <div class="tiles">
-    <div class="tile"><b>${wk.toLocaleString()}</b><span>steps this week</span></div>
+    <div class="tile"><b>${wkTotal.toLocaleString()}</b><span>steps this week</span></div>
     <div class="tile"><b>${hit}/7</b><span>days at goal</span></div>
   </div>
   <div class="card" style="margin-top:12px">
@@ -730,7 +783,7 @@ function corePage(){
     </div>`;
 
   // nothing picked yet: show what each set asks of you, so you can choose
-  const wk=weekDays(weekOffset);
+  const wk=weekOf(viewDay);
   const restsTaken=wk.filter(d=>setOn(d)==='rest').length;
   const compare = !sel ? `<div class="card">
     <div class="cap">What each one asks</div>
@@ -761,10 +814,10 @@ function corePage(){
 function progPage(){
   const xp=totalXP(), L=levelFromXP(xp);
   const yearFrom='2026-01-01';
-  const elapsed=Math.min(1,(new Date()-parse(yearFrom))/(parse('2026-12-31')-parse(yearFrom)));
+  const elapsed=Math.min(1,(parse(todayStr())-parse(yearFrom))/(parse('2026-12-31')-parse(yearFrom)));
   const rows=[['steps','Steps','steps'],...Object.entries(EX).map(([k,v])=>[k,v.name,v.unit])];
   const bs=badgeState(), gotN=bs.filter(b=>b.got).length;
-  const ms=missionsFor(mondayOf(todayStr()));
+  const ms=missionsFor(viewDay);
   return `
   <div class="card">
     <div class="cap">Standing</div>
@@ -788,7 +841,7 @@ function progPage(){
   </div>
 
   <div class="card" style="margin-top:12px">
-    <div class="cap">This week's missions</div>
+    <div class="cap">Today's missions</div>
     ${ms.map(m=>{const done=m.have>=m.need;return `<div class="mission ${done?'done':''}">
       <div class="mt"><b>${done?'&#10003; ':''}${m.n}</b><span>+${m.pts}</span></div>
       <div class="tbar"><i style="width:${m.have/m.need*100}%"></i></div>
@@ -808,6 +861,36 @@ function progPage(){
         <div class="pcts"><span>${pct.toFixed(1)}% of target</span><span>${on?'ahead of pace':'behind pace'}</span></div>
       </div>`;}).join('')}
     <div class="ghostrow"><button class="ghost" data-yeargoal="1">Change yearly targets</button></div>
+  </div>
+
+  <div class="card">
+    <div class="cap">Levels and ranks</div>
+    <p class="lede" style="margin-bottom:8px">Every level costs 60 points more than the one before it.</p>
+    ${RANKS.map((r,i)=>{
+      const lv=r[0], name=r[1], cost=xpAtLevel(lv);
+      const nextLv=RANKS[i+1]?RANKS[i+1][0]:null;
+      const reached=L.lv>=lv;
+      const here=reached&&(!nextLv||L.lv<nextLv);
+      return `<div class="lad ${reached?'reached':''} ${here?'here':''}">
+        <div class="num">${lv}</div>
+        <div class="txt"><b>${name}</b><span>${cost===0?'from the start':cost.toLocaleString()+' points'}</span></div>
+        <div class="st">${here?'you are here':(reached?'passed':(cost-xp).toLocaleString()+' to go')}</div>
+      </div>`;}).join('')}
+  </div>
+
+  <div class="card">
+    <div class="cap">How points are earned</div>
+    <table class="ptab"><tbody>
+      <tr><td>An exercise at its target</td><td>12</td></tr>
+      <tr><td>An exercise beaten by half</td><td>18</td></tr>
+      <tr><td>An exercise part done</td><td>5</td></tr>
+      <tr><td>Clearing a whole set</td><td>15</td></tr>
+      <tr><td>Steps, per 500 walked</td><td>2</td></tr>
+      <tr><td>A rest day you chose</td><td>4</td></tr>
+      <tr><td>A badge, by tier</td><td>50 &middot; 120 &middot; 250</td></tr>
+      <tr><td>A weekly mission</td><td>60 to 170</td></tr>
+    </tbody></table>
+    <p class="metaline">A full Chini session with 2,000 steps is about 71 points.</p>
   </div>
 
   <div class="card">
@@ -895,10 +978,10 @@ function wire(){
     await save(); render();};
 }
 
-document.getElementById('prevWk').onclick=()=>{weekOffset--; viewDay=weekDays(weekOffset)[0]; render();};
-document.getElementById('nextWk').onclick=()=>{
-  if(weekOffset>=0) return;
-  weekOffset++; viewDay=weekOffset===0?todayStr():weekDays(weekOffset)[0]; render();};
+document.getElementById('prevDay').onclick=()=>{viewDay=addDays(viewDay,-1); render();};
+document.getElementById('nextDay').onclick=()=>{
+  if(viewDay>=addDays(todayStr(),MAXAHEAD)) return;
+  viewDay=addDays(viewDay,1); render();};
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>{
   page=b.dataset.go; window.scrollTo({top:0,behavior:'smooth'}); render();});
 

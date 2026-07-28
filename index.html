@@ -206,7 +206,7 @@
 
   .bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.95);
     backdrop-filter:blur(16px);border-top:1.5px solid var(--line);padding:7px 6px calc(7px + env(safe-area-inset-bottom))}
-  .bottominner{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+  .bottominner{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
   .nb{background:none;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 2px;
     color:var(--rest);font-size:10px;letter-spacing:.03em;font-weight:800;border-radius:14px}
   .nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -237,6 +237,50 @@
   .opt .lbl{flex:1;min-width:0}
   .modal .cancel{width:100%;background:none;color:var(--muted);padding:15px;font-size:14px;
     letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+  /* fast hero */
+  .fasthero{display:flex;align-items:center;gap:18px;margin-top:16px}
+  .fh-num{font-family:'Varela Round',sans-serif;font-size:52px;line-height:1;color:var(--muted)}
+  .fh-num em{font-style:normal;font-size:16px;font-weight:800;margin-left:6px;color:var(--muted)}
+  .fh-num.k1,.fh-num.k2{color:var(--go)} .fh-num.k3{color:var(--gold)}
+  .fh-lab b{display:block;font-size:17px;font-weight:800}
+  .fh-lab span{font-size:13px;font-weight:700;color:var(--muted)}
+  .fastbar{position:relative;height:14px;background:var(--wash);border-radius:99px;margin-top:18px}
+  .fastfill{height:100%;border-radius:99px;background:var(--rest);transition:width .5s ease}
+  .fastfill.k1,.fastfill.k2{background:var(--go)} .fastfill.k3{background:var(--gold)}
+  .fastbar u{position:absolute;top:-6px;width:2px;height:26px;background:var(--line)}
+  .fastbar u span{position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;color:var(--muted);white-space:nowrap}
+  .fastbar u.lit{background:var(--go)} .fastbar u.lit span{color:var(--go)}
+  .fasttiers{font-size:12px;font-weight:700;color:var(--muted);margin-top:30px;text-align:center}
+
+  /* sugar streak */
+  .card.clean{border-color:var(--go)}
+  .card.slipped{border-color:var(--warn)}
+  .streakhero{display:flex;align-items:center;gap:18px;margin-top:6px}
+  .sflame{width:96px;height:96px;flex-shrink:0;border-radius:24px;background:var(--paper);border:2px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .sflame.lit{background:linear-gradient(180deg,#FFF6E4,#fff);border-color:var(--gold)}
+  .sf-n{font-family:'Varela Round',sans-serif;font-size:40px;line-height:1;color:var(--ink)}
+  .sflame.lit .sf-n{color:var(--gold)}
+  .sf-l{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  .sf-side{flex:1}
+  .sf-best{font-size:15px;font-weight:800} .sf-best b{font-family:'Varela Round',sans-serif;font-size:20px;color:var(--go)}
+  .sf-tot{font-size:12px;font-weight:700;color:var(--muted);margin-top:4px}
+  .sugarwrap{margin-top:16px;background:var(--paper);border-radius:14px;padding:6px 14px}
+  .srow{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:14px;font-weight:700;border-bottom:1px solid var(--line)}
+  .srow:last-child{border-bottom:0}
+  .sdot{width:7px;height:7px;border-radius:99px;background:var(--go);flex-shrink:0}
+  .sugartoggle{display:flex;gap:8px;margin-top:16px}
+  .sugartoggle button{flex:1;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);border-radius:14px;padding:15px;font-size:15px}
+  .sugartoggle button.clean.on{background:var(--go);color:#fff;border-color:var(--go)}
+  .sugartoggle button.slip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .sliptext{font-size:13px;font-weight:700;color:var(--warn);line-height:1.6;margin-top:14px;background:#FBEEE4;border-radius:12px;padding:14px}
+  .waterrow{display:flex;align-items:center;gap:10px;margin-top:16px}
+  .glass{flex:1;aspect-ratio:3/4;border:2px solid var(--line);border-radius:6px 6px 10px 10px;
+    background:var(--paper);cursor:pointer;transition:all .16s;position:relative;overflow:hidden}
+  .glass.full{border-color:var(--go)}
+  .glass.full:after{content:'';position:absolute;left:0;right:0;bottom:0;top:32%;background:var(--mint)}
+  .glass.full:before{content:'';position:absolute;left:0;right:0;bottom:0;height:32%;background:var(--go);opacity:.35}
+  .watercount{font-family:'Varela Round',sans-serif;font-size:16px;white-space:nowrap;color:var(--ink)}
   .page[hidden]{display:none}
   .chrome[hidden]{display:none}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -264,6 +308,7 @@
   <section class="page" id="p-home"></section>
   <section class="page" id="p-body" hidden></section>
   <section class="page" id="p-core" hidden></section>
+  <section class="page" id="p-diet" hidden></section>
   <section class="page" id="p-prog" hidden></section>
 </div>
 
@@ -275,6 +320,7 @@
   <button class="nb on" data-go="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
   <button class="nb" data-go="body"><svg viewBox="0 0 24 24"><path d="M12 3.6v3.2M8.2 7.2 12 10l3.8-2.8M12 10v4.6M8.6 20.4 12 14.6l3.4 5.8"/></svg>Body</button>
   <button class="nb" data-go="core"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="5"/><path d="M9 9.5v5M12 8.5v7M15 9.5v5"/></svg>Stomach</button>
+  <button class="nb" data-go="diet"><svg viewBox="0 0 24 24"><path d="M7 3v7a3 3 0 0 0 6 0V3M10 10v11M17 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4 2.5-1 2.5-4-1-5-2.5-5zM17 16v5"/></svg>Diet</button>
   <button class="nb" data-go="prog"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H3"/></svg>Progress</button>
 </div></nav>
 
@@ -310,6 +356,9 @@ const DEFAULT_CFG={
         B:{name:'Chini',ex:['plank','flutter','twists','tucks']}},
   stepGoal:2000,
   restTarget:2,
+  waterGoal:8,
+  fastFloor:12, fastGood:14, fastFull:16,
+  sugarList:['No soda','No sugar in tea','No sweets or biscuits','No packaged juice or energy drinks'],
   per:Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.per])),
   year:Object.assign({steps:400000},Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.year])))
 };
@@ -367,6 +416,9 @@ function workXP(){
     });
     xp+=Math.min(24,Math.floor(got('steps',d)/500)*2);
     if(setDone(d)) xp+=15;
+    if(fastKept(d)) xp+=15;
+    if(sugarState(d)==='clean') xp+=20;
+    xp+=Math.min(state.cfg.waterGoal,water(d))*2;
   });
   Object.keys(state.plan).forEach(d=>{ if(state.plan[d]==='rest'&&d<=todayStr()) xp+=4; });
   return xp;
@@ -471,8 +523,52 @@ const BADGES=[
   B('Big month','15 completed sets in a month',3,()=>({have:monthSets(),need:15})),
   B('Back at it','Return after a week away',2,()=>({have:comeback(),need:1})),
   B('Overshot','Beat every target by half in one session',2,()=>({have:overachieverDays(),need:1})),
-  B('Planner','Plan 30 days ahead of time',1,()=>({have:Object.keys(state.plan).length,need:30}))
+  B('Planner','Plan 30 days ahead of time',1,()=>({have:Object.keys(state.plan).length,need:30})),
+
+  B('Clean week','7 sugar-free days in a row',2,()=>({have:bestSugarStreak(),need:7})),
+  B('Clean fortnight','14 sugar-free days in a row',3,()=>({have:bestSugarStreak(),need:14})),
+  B('Clean month','30 sugar-free days in a row',3,()=>({have:bestSugarStreak(),need:30})),
+  B('Off the soda','25 sugar-free days total',2,()=>({have:cleanDaysTotal(),need:25})),
+  B('First clean day','A single sugar-free day',1,()=>({have:cleanDaysTotal(),need:1})),
+  B('Ten fasts','Reach 12h+ on 10 days',1,()=>({have:Object.keys(state.logs).filter(d=>fastHours(d)>=state.cfg.fastFloor).length,need:10})),
+  B('Full sixteen','Hit a full 16-hour fast',2,()=>({have:Object.keys(state.logs).some(d=>fastHours(d)>=state.cfg.fastFull)?1:0,need:1})),
+  B('Hydrated','Hit your water goal on 20 days',2,()=>({have:Object.keys(state.logs).filter(d=>water(d)>=state.cfg.waterGoal).length,need:20}))
 ];
+
+/* ================= diet ================= */
+const water=d=>Number((state.logs[d]||{}).water)||0;
+// fast hours: stored as the number of clean hours the user reports for that day
+const fastHours=d=>Number((state.logs[d]||{}).fastH)||0;
+function fastTier(h){
+  const f=state.cfg;
+  if(h>=f.fastFull) return {k:3,label:'Full 16:8',note:'Best tier'};
+  if(h>=f.fastGood) return {k:2,label:'Strong fast',note:''};
+  if(h>=f.fastFloor) return {k:1,label:'Solid fast',note:''};
+  if(h>0) return {k:0,label:h+' hours in',note:'Keep going'};
+  return {k:-1,label:'Not logged',note:''};
+}
+const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;   // 12h+ counts as a kept fast for points/missions
+
+// sugar: a day is clean if the user has marked it clean and not flagged a slip
+const sugarState=d=>(state.logs[d]||{}).sugar;         // 'clean' | 'slip' | undefined
+function sugarStreak(){
+  // current run of clean days ending today (or yesterday if today unmarked), broken by a slip
+  let run=0, d=todayStr();
+  if(sugarState(d)===undefined) d=addDays(d,-1);
+  while(sugarState(d)==='clean'){ run++; d=addDays(d,-1); }
+  return run;
+}
+function bestSugarStreak(){
+  const ds=Object.keys(state.logs).filter(d=>sugarState(d)).sort();
+  let best=0,run=0,prev=null;
+  ds.forEach(d=>{
+    if(sugarState(d)==='clean'){ run=(prev&&addDays(prev,1)===d)?run+1:1; best=Math.max(best,run); }
+    else run=0;
+    prev=d;
+  });
+  return Math.max(best,sugarStreak());
+}
+const cleanDaysTotal=()=>Object.keys(state.logs).filter(d=>sugarState(d)==='clean').length;
 
 /* ================= daily missions ================= */
 // built from what you chose for that day, so they never ask for a set you did not pick
@@ -481,29 +577,29 @@ function missionsFor(d){
   const stepMission={n:'Walk '+goal.toLocaleString()+' steps', pts:25,
     have:Math.min(steps,goal), need:goal};
 
+  const fastM={n:'Fast 12 hours or more', pts:20, have:Math.min(fastHours(d),state.cfg.fastFloor), need:state.cfg.fastFloor};
+  const sugarM={n:'Keep the day sugar-free', pts:20, have:sugarState(d)==='clean'?1:0, need:1};
+  const waterM={n:'Drink '+state.cfg.waterGoal+' glasses of water', pts:15, have:Math.min(water(d),state.cfg.waterGoal), need:state.cfg.waterGoal};
   if(!sel){
     return [
       {n:'Choose today: Juu, Chini or Rest', pts:10, have:0, need:1},
-      stepMission
+      stepMission, fastM, sugarM, waterM
     ];
   }
   if(sel==='rest'){
-    const tom=addDays(d,1);
     return [
-      stepMission,
-      {n:'Rest day taken', pts:10, have:1, need:1},
-      {n:'Plan tomorrow', pts:15, have:setOn(tom)?1:0, need:1}
+      stepMission, fastM, sugarM, waterM,
+      {n:'Rest day taken', pts:10, have:1, need:1}
     ];
   }
   const list=exOf(d);
   const atTarget=list.filter(k=>got(k,d)>=state.cfg.per[k]).length;
-  const beaten=list.filter(k=>got(k,d)>=state.cfg.per[k]*1.5).length;
   const started=list.filter(k=>got(k,d)>0).length;
   return [
     {n:'Start the '+setName(d)+' set', pts:10, have:Math.min(started,1), need:1},
     {n:'Finish all '+list.length+' exercises', pts:40, have:atTarget, need:list.length},
     stepMission,
-    {n:'Beat one target by half', pts:30, have:Math.min(beaten,1), need:1}
+    fastM, sugarM, waterM
   ];
 }
 function missionXP(){
@@ -629,7 +725,7 @@ function greeting(){
   const h=hourNow();
   return h<12?'Good morning':(h<17?'Good afternoon':'Good evening');
 }
-const TITLES={home:'',body:'Body',core:'Stomach',prog:'Progress'};
+const TITLES={home:'',body:'Body',core:'Stomach',diet:'Diet',prog:'Progress'};
 const weekOf=d=>daysOfWeekFrom(mondayOf(d));
 const MAXAHEAD=28;
 
@@ -811,6 +907,76 @@ function corePage(){
   ${compare}`;
 }
 
+function dietPage(){
+  const d=viewDay;
+  const h=fastHours(d), t=fastTier(h);
+  const g=water(d), goal=state.cfg.waterGoal;
+  const sug=sugarState(d);
+  const run=sugarStreak(), best=bestSugarStreak();
+
+  // fast: segmented bar of tier milestones
+  const marks=[state.cfg.fastFloor,state.cfg.fastGood,state.cfg.fastFull];
+  const maxH=18;
+  const fastBar=`<div class="fastbar">
+    <div class="fastfill k${Math.max(0,t.k)}" style="width:${Math.min(100,h/maxH*100)}%"></div>
+    ${marks.map(m=>`<u style="left:${m/maxH*100}%" class="${h>=m?'lit':''}"><span>${m}h</span></u>`).join('')}
+  </div>`;
+
+  const glasses=[...Array(Math.max(goal,g))].map((_,i)=>
+    `<div class="glass ${i<g?'full':''}" data-water="${i+1}"></div>`).join('');
+
+  const listRows=state.cfg.sugarList.map(x=>`<div class="srow"><span class="sdot"></span>${x}</div>`).join('');
+
+  return `
+  <div class="card">
+    <div class="cap">${longDate(d)}</div>
+    <h2>Your fast</h2>
+    <p class="lede" style="margin-top:8px">Tell it when you last ate. It counts the clean hours since then.</p>
+    <div class="fasthero">
+      <div class="fh-num k${Math.max(0,t.k)}">${h?h:'\u2013'}<em>hrs</em></div>
+      <div class="fh-lab"><b>${t.label}</b>${t.note?`<span>${t.note}</span>`:''}</div>
+    </div>
+    ${fastBar}
+    <div class="ghostrow" style="margin-top:16px">
+      <button class="ghost" data-lastmeal="1">I last ate at\u2026</button>
+      ${h?`<button class="ghost" data-clearfast="1">Clear</button>`:''}
+    </div>
+    <p class="fasttiers">12h solid \u00b7 14h strong \u00b7 16h full 16:8</p>
+  </div>
+
+  <div class="card ${sug==='clean'?'clean':''} ${sug==='slip'?'slipped':''}">
+    <div class="cap">No-sugar streak</div>
+    <div class="streakhero">
+      <div class="sflame ${run?'lit':''}">
+        <div class="sf-n">${run}</div><div class="sf-l">day${run===1?'':'s'} clean</div>
+      </div>
+      <div class="sf-side">
+        <div class="sf-best">Best: <b>${best}</b></div>
+        <div class="sf-tot">${cleanDaysTotal()} clean days total</div>
+      </div>
+    </div>
+    <div class="sugarwrap">${listRows}</div>
+    <div class="sugartoggle">
+      <button class="clean ${sug==='clean'?'on':''}" data-sugar="clean">${sug==='clean'?'\u2713 Stayed clean':'Clean today'}</button>
+      <button class="slip ${sug==='slip'?'on':''}" data-sugar="slip">${sug==='slip'?'Slipped':'I slipped'}</button>
+    </div>
+    ${sug==='slip'?`<p class="sliptext">Noted. Your best run of ${best} stays as the mark to beat, and a fresh run starts tomorrow. One day doesn't undo the work.</p>`:''}
+  </div>
+
+  <div class="card">
+    <div class="cap">Water</div>
+    <h2 style="font-size:19px">${g} of ${goal} glasses</h2>
+    <div class="waterrow" style="margin-top:14px">${glasses}</div>
+    <div class="ghostrow"><button class="ghost" data-waterless="1">Remove one</button>
+      <button class="ghost" data-watergoal="1">Change goal</button></div>
+  </div>
+
+  <div class="card">
+    <div class="cap">How this adds up</div>
+    <p class="lede" style="margin-top:0">A fast of twelve hours or more is 15 points, a sugar-free day 20, and every glass of water 2. The fast sets your deficit, no sugar protects it, water carries you through the hungry hours. Small wins, every day.</p>
+  </div>`;
+}
+
 function progPage(){
   const xp=totalXP(), L=levelFromXP(xp);
   const yearFrom='2026-01-01';
@@ -887,10 +1053,22 @@ function progPage(){
       <tr><td>Clearing a whole set</td><td>15</td></tr>
       <tr><td>Steps, per 500 walked</td><td>2</td></tr>
       <tr><td>A rest day you chose</td><td>4</td></tr>
+      <tr><td>A fast of 12 hours or more</td><td>15</td></tr>
+      <tr><td>A sugar-free day</td><td>20</td></tr>
+      <tr><td>Water, per glass</td><td>2</td></tr>
       <tr><td>A badge, by tier</td><td>50 &middot; 120 &middot; 250</td></tr>
       <tr><td>A weekly mission</td><td>60 to 170</td></tr>
     </tbody></table>
     <p class="metaline">A full Chini session with 2,000 steps is about 71 points.</p>
+  </div>
+
+  <div class="card">
+    <div class="cap">Your data</div>
+    <p class="lede" style="margin-top:0">Everything lives on this phone. Back it up to a file you keep, and load it onto a new phone or after clearing your browser. Do this now and then.</p>
+    <div class="ghostrow">
+      <button class="ghost" data-export="1">Back up to a file</button>
+      <button class="ghost" data-import="1">Restore from a file</button>
+    </div>
   </div>
 
   <div class="card">
@@ -910,8 +1088,8 @@ function progPage(){
 /* ================= render ================= */
 function render(){
   renderChrome();
-  const map={home:homePage,body:bodyPage,core:corePage,prog:progPage};
-  ['home','body','core','prog'].forEach(p=>{
+  const map={home:homePage,body:bodyPage,core:corePage,diet:dietPage,prog:progPage};
+  ['home','body','core','diet','prog'].forEach(p=>{
     const el=document.getElementById('p-'+p);
     el.innerHTML = page===p?map[p]():'';
     el.hidden = page!==p;
@@ -944,6 +1122,53 @@ function wire(){
     if(state.logs[viewDay]) delete state.logs[viewDay].steps;
     if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
     await save(); render();};
+  const lm=document.querySelector('[data-lastmeal]');
+  if(lm) lm.onclick=async()=>{
+    const now=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+    const v=prompt('What time did you last eat? Use 24-hour time, like 22:30 for 10:30pm.','22:00');
+    if(v===null) return;
+    const m=/^(\d{1,2}):(\d{2})$/.exec(v.trim());
+    if(!m){alert('Enter it like 22:00.');return;}
+    let [nh,nm]=now.split(':').map(Number);
+    let eh=Number(m[1]), em=Number(m[2]);
+    if(eh>23||em>59){alert('That is not a valid time.');return;}
+    // hours from last meal until now; if the meal time is later than now, it was yesterday
+    let mins=(nh*60+nm)-(eh*60+em);
+    if(mins<0) mins+=1440;
+    const hrs=Math.floor(mins/60);
+    state.logs[viewDay]=state.logs[viewDay]||{};
+    state.logs[viewDay].fastH=hrs;
+    await save(); render(); checkNewBadges();
+    const t=fastTier(hrs);
+    if(t.k>=1) toast(t.label+'!', hrs+' clean hours since your last meal.');};
+  const cf=document.querySelector('[data-clearfast]');
+  if(cf) cf.onclick=async()=>{
+    if(state.logs[viewDay]) delete state.logs[viewDay].fastH;
+    if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
+    await save(); render();};
+  document.querySelectorAll('[data-sugar]').forEach(b=>b.onclick=async()=>{
+    state.logs[viewDay]=state.logs[viewDay]||{};
+    const v=b.dataset.sugar;
+    if(state.logs[viewDay].sugar===v) delete state.logs[viewDay].sugar; else state.logs[viewDay].sugar=v;
+    if(!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
+    await save(); render(); checkNewBadges();});
+  document.querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{
+    const n=Number(b.dataset.water);
+    state.logs[viewDay]=state.logs[viewDay]||{};
+    state.logs[viewDay].water = (water(viewDay)===n)?n-1:n;
+    if(!state.logs[viewDay].water) delete state.logs[viewDay].water;
+    if(!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
+    await save(); render(); checkNewBadges();});
+  const wl=document.querySelector('[data-waterless]');
+  if(wl) wl.onclick=async()=>{
+    if(water(viewDay)>0){state.logs[viewDay].water--;
+      if(!state.logs[viewDay].water) delete state.logs[viewDay].water;
+      if(!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
+      await save(); render();}};
+  const wg=document.querySelector('[data-watergoal]');
+  if(wg) wg.onclick=async()=>{
+    const v=prompt('Glasses of water a day:',state.cfg.waterGoal);
+    if(v&&Number(v)>0){state.cfg.waterGoal=Math.round(Number(v)); await save(); render();}};
   const rd=document.querySelector('[data-restdays]');
   if(rd) rd.onclick=async()=>{
     const v=prompt('How many rest days are you aiming for each week?',state.cfg.restTarget);
@@ -968,6 +1193,37 @@ function wire(){
       if(v===null) break;
       if(Number(v)>0) state.cfg.per[k]=Math.round(Number(v));}
     await save(); render();};
+  const ex=document.querySelector('[data-export]');
+  if(ex) ex.onclick=()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='fatu-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast('Backed up','Keep this file safe. Load it any time to restore.');};
+  const im=document.querySelector('[data-import]');
+  if(im) im.onclick=()=>{
+    const inp=document.createElement('input');
+    inp.type='file'; inp.accept='application/json,.json';
+    inp.onchange=()=>{
+      const file=inp.files[0]; if(!file) return;
+      const r=new FileReader();
+      r.onload=async()=>{
+        try{
+          const data=JSON.parse(r.result);
+          if(!data||typeof data!=='object'||!('logs' in data)) throw 0;
+          if(!confirm('This replaces everything currently in the app with the backup. Continue?')) return;
+          state.logs=data.logs||{}; state.plan=data.plan||{}; state.seen=data.seen||[];
+          state.cfg=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)),data.cfg||{});
+          state.cfg.year=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG.year)),data.cfg&&data.cfg.year||{});
+          await save(); viewDay=todayStr(); page='home'; render();
+          toast('Restored','Your history is back.');
+        }catch(e){ alert('That file could not be read. Make sure it is a backup this app created.'); }
+      };
+      r.readAsText(file);
+    };
+    inp.click();};
   const yg=document.querySelector('[data-yeargoal]');
   if(yg) yg.onclick=async()=>{
     const list=[['steps','Steps','steps'],...Object.entries(EX).map(([k,v])=>[k,v.name,v.unit])];

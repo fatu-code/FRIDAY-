@@ -1266,16 +1266,26 @@ function makeShareCard(){
     x.letterSpacing='0px';
   });
 
-  // ---------- footer, its own reserved band below the grid ----------
-  const gridBottom = gyTop + 3*gh + 2*gap;      // last row bottom
-  const fy = gridBottom + 66;
-  x.fillStyle=INK; x.font=F(800,32); x.textAlign='left';
-  x.fillText(longDate(todayStr()), 72, fy);
+  // ---------- footer: PINNED to the bottom of the card ----------
+  // The footer no longer follows the grid. It rests at the base, a fixed
+  // distance from the bottom edge, the way a real footer does.
+  const dateY = H - 92;          // upper footer line (the date)
+  const subY  = H - 56;          // lower footer line (day + start)
+  const ruleY = H - 150;         // hairline above the footer band
+  x.strokeStyle=LINE; x.lineWidth=2;
+  x.beginPath(); x.moveTo(72,ruleY); x.lineTo(W-72,ruleY); x.stroke();
+
+  // left: date over its sub-line
+  x.textAlign='left';
+  x.fillStyle=INK; x.font=F(800,33);
+  x.fillText(longDate(todayStr()), 72, dateY);
   x.fillStyle=MUT; x.font=F(700,26);
-  x.fillText(`Day ${daysIn} \u00b7 started ${longDate(started)}`, 72, fy+36);
+  x.fillText(`Day ${daysIn} \u00b7 started ${longDate(started)}`, 72, subY);
+
+  // right: tagline, centred between the two footer lines
   x.textAlign='right';
-  x.fillStyle=GO; x.font=F(800,28);
-  x.fillText('history in the making', W-72, fy+18);
+  x.fillStyle=GO; x.font=F(800,29);
+  x.fillText('history in the making', W-72, (dateY+subY)/2 + 4);
   x.textAlign='left';
 
   c.toBlob(blob=>{

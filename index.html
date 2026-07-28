@@ -35,6 +35,7 @@
   .topbar{position:sticky;top:0;z-index:25;background:#fff;border-bottom:1.5px solid var(--line)}
   .tinner{max-width:620px;margin:0 auto;padding:17px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
   .greet{font-family:Nunito,sans-serif;font-weight:800;font-size:17px;color:var(--ink);letter-spacing:-.01em}
+  .greet.brand{font-family:'Varela Round',sans-serif;font-weight:400;color:var(--go);font-size:18px}
   .tdate{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
   .quad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .sc{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:18px;position:relative;box-shadow:var(--shadow)}
@@ -87,6 +88,12 @@
   .ptab td:last-child{text-align:right;font-family:'Varela Round',sans-serif;font-weight:400;font-size:16px;color:var(--ink);white-space:nowrap}
   .ptab tr:last-child td{border-bottom:0}
 
+  .phead{margin:4px 4px 16px}
+  .phead h1{font-size:26px;line-height:1.15}
+  .phead p{font-size:13px;font-weight:700;color:var(--muted);margin:6px 0 0;line-height:1.5}
+  .editflag{display:inline-flex;align-items:center;gap:8px;background:#FBF4E6;color:var(--gold);
+    border:1.5px solid #F0DFB8;border-radius:99px;padding:8px 14px;font-size:12px;font-weight:900;margin-top:12px}
+  .editflag button{background:var(--gold);color:#fff;border-radius:99px;padding:4px 11px;font-size:11px;font-weight:900}
   .daynav{display:flex;align-items:stretch;gap:8px;margin-bottom:16px}
   .arrow{width:46px;flex-shrink:0;background:#fff;border:1.5px solid var(--line);color:var(--ink);
     border-radius:16px;font-size:17px;line-height:1}
@@ -269,11 +276,16 @@
   .srow{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:14px;font-weight:700;border-bottom:1px solid var(--line)}
   .srow:last-child{border-bottom:0}
   .sdot{width:7px;height:7px;border-radius:99px;background:var(--go);flex-shrink:0}
-  .sugartoggle{display:flex;gap:8px;margin-top:16px}
-  .sugartoggle button{flex:1;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);border-radius:14px;padding:15px;font-size:15px}
-  .sugartoggle button.clean.on{background:var(--go);color:#fff;border-color:var(--go)}
-  .sugartoggle button.slip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .sugar3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
+  .sugar3 button{background:var(--paper);border:1.5px solid var(--line);color:var(--muted);border-radius:14px;padding:15px 6px;font-size:14px}
+  .sugar3 button.clean.on{background:var(--go);color:#fff;border-color:var(--go)}
+  .sugar3 button.cheat.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .sugar3 button.slip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .card.cheated{border-color:var(--gold)}
+  .sflame.paused{background:linear-gradient(180deg,#FBF4E6,#fff);border-color:var(--gold)}
+  .sflame.paused .sf-n{color:var(--gold)}
   .sliptext{font-size:13px;font-weight:700;color:var(--warn);line-height:1.6;margin-top:14px;background:#FBEEE4;border-radius:12px;padding:14px}
+  .cheattext{font-size:13px;font-weight:700;color:var(--gold);line-height:1.6;margin-top:14px;background:#FBF4E6;border-radius:12px;padding:14px}
   .waterrow{display:flex;align-items:center;gap:10px;margin-top:16px}
   .glass{flex:1;aspect-ratio:3/4;border:2px solid var(--line);border-radius:6px 6px 10px 10px;
     background:var(--paper);cursor:pointer;transition:all .16s;position:relative;overflow:hidden}
@@ -537,38 +549,57 @@ const BADGES=[
 
 /* ================= diet ================= */
 const water=d=>Number((state.logs[d]||{}).water)||0;
-// fast hours: stored as the number of clean hours the user reports for that day
-const fastHours=d=>Number((state.logs[d]||{}).fastH)||0;
+
+// ---- fast: two stamps. fastStop = epoch ms you finished your last meal (previous night),
+//      fastStart = epoch ms you broke the fast. Hours = the gap. Live-counts until you break it. ----
+const nowMs=()=>Date.now();
+function fastHours(d){
+  const l=state.logs[d]||{};
+  if(!l.fastStop) return 0;
+  const end = l.fastStart || (d===todayStr() ? nowMs() : l.fastStop); // live until broken; past days need both
+  const h=(end-l.fastStop)/3600000;
+  return h>0 ? h : 0;
+}
+const fastRunning=d=>{const l=state.logs[d]||{};return l.fastStop&&!l.fastStart;};
 function fastTier(h){
   const f=state.cfg;
   if(h>=f.fastFull) return {k:3,label:'Full 16:8',note:'Best tier'};
   if(h>=f.fastGood) return {k:2,label:'Strong fast',note:''};
   if(h>=f.fastFloor) return {k:1,label:'Solid fast',note:''};
-  if(h>0) return {k:0,label:h+' hours in',note:'Keep going'};
-  return {k:-1,label:'Not logged',note:''};
+  if(h>0) return {k:0,label:'Fasting',note:'Keep going'};
+  return {k:-1,label:'Not started',note:''};
 }
-const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;   // 12h+ counts as a kept fast for points/missions
+const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;
 
-// sugar: a day is clean if the user has marked it clean and not flagged a slip
-const sugarState=d=>(state.logs[d]||{}).sugar;         // 'clean' | 'slip' | undefined
+// ---- sugar: 'clean' | 'cheat' | 'slip'. clean builds the run; cheat pauses it (planned); slip breaks it. ----
+const sugarState=d=>(state.logs[d]||{}).sugar;
 function sugarStreak(){
-  // current run of clean days ending today (or yesterday if today unmarked), broken by a slip
+  // walk back from today; clean adds, cheat is skipped (neutral), slip stops.
   let run=0, d=todayStr();
   if(sugarState(d)===undefined) d=addDays(d,-1);
-  while(sugarState(d)==='clean'){ run++; d=addDays(d,-1); }
+  while(true){
+    const st=sugarState(d);
+    if(st==='clean'){ run++; d=addDays(d,-1); }
+    else if(st==='cheat'){ d=addDays(d,-1); }   // planned: pause, don't add, don't break
+    else break;                                  // slip or unmarked gap ends the run
+  }
   return run;
 }
 function bestSugarStreak(){
   const ds=Object.keys(state.logs).filter(d=>sugarState(d)).sort();
   let best=0,run=0,prev=null;
   ds.forEach(d=>{
-    if(sugarState(d)==='clean'){ run=(prev&&addDays(prev,1)===d)?run+1:1; best=Math.max(best,run); }
-    else run=0;
-    prev=d;
+    const st=sugarState(d), consec=prev&&addDays(prev,1)===d;
+    if(st==='clean'){ run=consec?run+1:1; }
+    else if(st==='cheat'){ run=consec?run:0; }   // cheat keeps a consecutive run alive but adds nothing
+    else { run=0; }
+    best=Math.max(best,run); prev=d;
   });
   return Math.max(best,sugarStreak());
 }
 const cleanDaysTotal=()=>Object.keys(state.logs).filter(d=>sugarState(d)==='clean').length;
+const cheatsThisMonth=()=>{const m=todayStr().slice(0,7);
+  return Object.keys(state.logs).filter(d=>d.slice(0,7)===m&&sugarState(d)==='cheat').length;};
 
 /* ================= daily missions ================= */
 // built from what you chose for that day, so they never ask for a set you did not pick
@@ -577,7 +608,7 @@ function missionsFor(d){
   const stepMission={n:'Walk '+goal.toLocaleString()+' steps', pts:25,
     have:Math.min(steps,goal), need:goal};
 
-  const fastM={n:'Fast 12 hours or more', pts:20, have:Math.min(fastHours(d),state.cfg.fastFloor), need:state.cfg.fastFloor};
+  const fastM={n:'Fast 12 hours or more', pts:20, have:Math.min(Math.floor(fastHours(d)),state.cfg.fastFloor), need:state.cfg.fastFloor};
   const sugarM={n:'Keep the day sugar-free', pts:20, have:sugarState(d)==='clean'?1:0, need:1};
   const waterM={n:'Drink '+state.cfg.waterGoal+' glasses of water', pts:15, have:Math.min(water(d),state.cfg.waterGoal), need:state.cfg.waterGoal};
   if(!sel){
@@ -697,7 +728,7 @@ async function pickDay(val,btn){
 document.getElementById('scrim').onclick=closeModal;
 // one delegated listener, so taps keep working after every re-render
 document.addEventListener('click',e=>{
-  const t=e.target.closest&&e.target.closest('[data-day],[data-pick],[data-opentoday],[data-openday]');
+  const t=e.target.closest&&e.target.closest('[data-day],[data-pick],[data-opentoday],[data-openday],[data-today]');
   if(!t) return;
   if(t.hasAttribute('data-day')){
     if(page==='home') openDayModal(t.dataset.day);
@@ -706,6 +737,8 @@ document.addEventListener('click',e=>{
     openDayModal(todayStr());
   } else if(t.hasAttribute('data-openday')){
     openDayModal(viewDay);
+  } else if(t.hasAttribute('data-today')){
+    viewDay=todayStr(); render();
   } else {
     pickDay(t.dataset.pick,t);
   }
@@ -733,11 +766,11 @@ function renderChrome(){
   const onHome = page==='home' && viewDay===todayStr();
   const d0=parse(viewDay);
   const shortD = DAYNAMES[d0.getDay()].slice(0,3)+' '+ord(d0.getDate())+' '+MONTHS[d0.getMonth()].slice(0,3);
-  document.getElementById('greetLine').textContent =
-    onHome ? greeting()+', Fatu' : (page==='prog' ? 'Progress' : longDate(viewDay));
-  document.getElementById('topDate').textContent =
-    onHome ? shortD : (page==='prog' ? '' : TITLES[page]);
-  document.getElementById('chrome').hidden = page==='prog';
+  const gl=document.getElementById('greetLine'), td=document.getElementById('topDate');
+  if(onHome){ gl.textContent=greeting()+', Fatu'; td.textContent=shortD; gl.classList.remove('brand'); }
+  else { gl.textContent='Fatu'; gl.classList.add('brand'); td.textContent=''; }
+  // the day picker belongs to Home only; every other page leads with its own content
+  document.getElementById('chrome').hidden = page!=='home';
 
   const sel=setOn(viewDay);
   let tag, tagClass, note;
@@ -848,13 +881,21 @@ function homePage(){
   </div>`;
 }
 
+function pageHead(title,sub){
+  const off = viewDay!==todayStr();
+  return `<div class="phead">
+    <h1>${title}</h1>
+    <p>${sub}</p>
+    ${off?`<span class="editflag">Editing ${longDate(viewDay)} <button data-today="1">Back to today</button></span>`:''}
+  </div>`;
+}
 function bodyPage(){
   const steps=got('steps',viewDay), days=weekOf(viewDay);
   const wkTotal=days.reduce((s,d)=>s+got('steps',d),0);
   const hit=days.filter(d=>got('steps',d)>=state.cfg.stepGoal).length;
   return `
+  ${pageHead('Body','Your walking is the engine of the fat loss. Log the day\u2019s steps.')}
   <div class="card">
-    <div class="cap">Steps</div>
     <div class="bignum"><b>${steps.toLocaleString()}</b><small>of ${state.cfg.stepGoal.toLocaleString()} today</small></div>
     <div style="margin-top:14px"><input type="number" min="0" inputmode="numeric"
       placeholder="Type your step count" value="${steps||''}" data-log="steps"></div>
@@ -892,9 +933,10 @@ function corePage(){
   </div>` : '';
 
   return `
+  ${pageHead('Stomach','Pick a set and log what you actually did. The number is yours.')}
   <div class="card ${sel==='rest'?'rest':''}">
     <div class="cap">${sel==='rest'?'Rest day':'Session'}</div>
-    <h2>${!sel?'Pick your set':(sel==='rest'?'Resting today':setName(viewDay)+' set')}</h2>
+    <h2>${!sel?'What are you doing?':(sel==='rest'?'Resting today':setName(viewDay)+' set')}</h2>
     ${chooser(viewDay)}
     ${(sel&&sel!=='rest')?`<div style="margin-top:16px">${exRows(list)}</div>
       <button class="allbtn" data-fillall="1">Fill all at target</button>
@@ -909,12 +951,14 @@ function corePage(){
 
 function dietPage(){
   const d=viewDay;
-  const h=fastHours(d), t=fastTier(h);
+  const h=fastHours(d), t=fastTier(h), running=fastRunning(d);
+  const hShown = h>0 ? (h<10 ? h.toFixed(1) : Math.round(h)) : '\u2013';
   const g=water(d), goal=state.cfg.waterGoal;
   const sug=sugarState(d);
-  const run=sugarStreak(), best=bestSugarStreak();
+  const run=sugarStreak(), best=bestSugarStreak(), cheats=cheatsThisMonth();
+  const l=state.logs[d]||{};
+  const hhmm=ms=>new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ms));
 
-  // fast: segmented bar of tier milestones
   const marks=[state.cfg.fastFloor,state.cfg.fastGood,state.cfg.fastFull];
   const maxH=18;
   const fastBar=`<div class="fastbar">
@@ -922,45 +966,66 @@ function dietPage(){
     ${marks.map(m=>`<u style="left:${m/maxH*100}%" class="${h>=m?'lit':''}"><span>${m}h</span></u>`).join('')}
   </div>`;
 
+  // three states: not started, running (waiting to break), broken (has both stamps)
+  let fastBody;
+  if(!l.fastStop){
+    fastBody = `<p class="lede" style="margin-top:8px">Two taps. One when you finish your last meal tonight, one when you eat again tomorrow.</p>
+      <button class="allbtn" data-faststop="1">I've finished eating</button>`;
+  } else if(running){
+    fastBody = `<div class="fasthero">
+        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
+        <div class="fh-lab"><b>${t.label}</b><span>Since ${hhmm(l.fastStop)}, still going</span></div>
+      </div>
+      ${fastBar}
+      <button class="allbtn" data-faststart="1" style="margin-top:18px">I'm eating now &middot; break the fast</button>
+      <div class="ghostrow"><button class="ghost" data-fixstop="1">Change when I stopped</button>
+        <button class="ghost" data-clearfast="1">Clear</button></div>`;
+  } else {
+    fastBody = `<div class="fasthero">
+        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
+        <div class="fh-lab"><b>${t.label}</b><span>${hhmm(l.fastStop)} \u2192 ${hhmm(l.fastStart)}</span></div>
+      </div>
+      ${fastBar}
+      <div class="ghostrow" style="margin-top:16px"><button class="ghost" data-fixstop="1">Edit times</button>
+        <button class="ghost" data-clearfast="1">Clear</button></div>`;
+  }
+
   const glasses=[...Array(Math.max(goal,g))].map((_,i)=>
     `<div class="glass ${i<g?'full':''}" data-water="${i+1}"></div>`).join('');
-
   const listRows=state.cfg.sugarList.map(x=>`<div class="srow"><span class="sdot"></span>${x}</div>`).join('');
 
+  const streakLabel = sug==='cheat' ? 'day'+(run===1?'':'s')+' clean, paused today'
+                                    : 'day'+(run===1?'':'s')+' clean';
+
   return `
+  ${pageHead('Diet','The fast sets the deficit, no sugar protects it, water carries you through.')}
   <div class="card">
-    <div class="cap">${longDate(d)}</div>
-    <h2>Your fast</h2>
-    <p class="lede" style="margin-top:8px">Tell it when you last ate. It counts the clean hours since then.</p>
-    <div class="fasthero">
-      <div class="fh-num k${Math.max(0,t.k)}">${h?h:'\u2013'}<em>hrs</em></div>
-      <div class="fh-lab"><b>${t.label}</b>${t.note?`<span>${t.note}</span>`:''}</div>
-    </div>
-    ${fastBar}
-    <div class="ghostrow" style="margin-top:16px">
-      <button class="ghost" data-lastmeal="1">I last ate at\u2026</button>
-      ${h?`<button class="ghost" data-clearfast="1">Clear</button>`:''}
-    </div>
+    <div class="cap">Your fast</div>
+    <h2 style="font-size:19px">${!l.fastStop?'Start your fast':(running?'Fasting now':'Today\u2019s fast')}</h2>
+    ${fastBody}
     <p class="fasttiers">12h solid \u00b7 14h strong \u00b7 16h full 16:8</p>
   </div>
 
-  <div class="card ${sug==='clean'?'clean':''} ${sug==='slip'?'slipped':''}">
+  <div class="card ${sug==='clean'?'clean':''} ${sug==='slip'?'slipped':''} ${sug==='cheat'?'cheated':''}">
     <div class="cap">No-sugar streak</div>
     <div class="streakhero">
-      <div class="sflame ${run?'lit':''}">
-        <div class="sf-n">${run}</div><div class="sf-l">day${run===1?'':'s'} clean</div>
+      <div class="sflame ${run&&sug!=='cheat'?'lit':''} ${sug==='cheat'?'paused':''}">
+        <div class="sf-n">${run}</div><div class="sf-l">${streakLabel}</div>
       </div>
       <div class="sf-side">
         <div class="sf-best">Best: <b>${best}</b></div>
         <div class="sf-tot">${cleanDaysTotal()} clean days total</div>
+        <div class="sf-tot">${cheats} cheat day${cheats===1?'':'s'} this month</div>
       </div>
     </div>
     <div class="sugarwrap">${listRows}</div>
-    <div class="sugartoggle">
-      <button class="clean ${sug==='clean'?'on':''}" data-sugar="clean">${sug==='clean'?'\u2713 Stayed clean':'Clean today'}</button>
-      <button class="slip ${sug==='slip'?'on':''}" data-sugar="slip">${sug==='slip'?'Slipped':'I slipped'}</button>
+    <div class="sugar3">
+      <button class="clean ${sug==='clean'?'on':''}" data-sugar="clean">${sug==='clean'?'\u2713 Clean':'Clean'}</button>
+      <button class="cheat ${sug==='cheat'?'on':''}" data-sugar="cheat">${sug==='cheat'?'Cheat day':'Cheat day'}</button>
+      <button class="slip ${sug==='slip'?'on':''}" data-sugar="slip">${sug==='slip'?'Slipped':'Slip'}</button>
     </div>
-    ${sug==='slip'?`<p class="sliptext">Noted. Your best run of ${best} stays as the mark to beat, and a fresh run starts tomorrow. One day doesn't undo the work.</p>`:''}
+    ${sug==='cheat'?`<p class="cheattext">Planned and honest. Your run of ${run} holds \u2014 it won't climb today, but a birthday shouldn't cost you the wall you built. Back to clean tomorrow.</p>`:''}
+    ${sug==='slip'?`<p class="sliptext">Noted. Your best run of ${best} stays as the mark to beat, and a fresh run starts. One day doesn't undo the work. If this was planned, mark it a cheat day instead.</p>`:''}
   </div>
 
   <div class="card">
@@ -985,6 +1050,7 @@ function progPage(){
   const bs=badgeState(), gotN=bs.filter(b=>b.got).length;
   const ms=missionsFor(viewDay);
   return `
+  <div class="phead"><h1>Progress</h1><p>Your standing, your targets for the year, and every badge.</p></div>
   <div class="card">
     <div class="cap">Standing</div>
     <div class="rank">
@@ -1122,36 +1188,45 @@ function wire(){
     if(state.logs[viewDay]) delete state.logs[viewDay].steps;
     if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
     await save(); render();};
-  const lm=document.querySelector('[data-lastmeal]');
-  if(lm) lm.onclick=async()=>{
-    const now=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
-    const v=prompt('What time did you last eat? Use 24-hour time, like 22:30 for 10:30pm.','22:00');
+  // ---- two-tap fast ----
+  const ensure=()=>{state.logs[viewDay]=state.logs[viewDay]||{};return state.logs[viewDay];};
+  const tidy=()=>{if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];};
+  // parse a "HH:MM" for today/yesterday into an epoch ms in Kampala terms (approx: local device offset)
+  function stampFromHHMM(str,assumeYesterday){
+    const m=/^(\d{1,2}):(\d{2})$/.exec(str.trim()); if(!m) return null;
+    const hh=Number(m[1]), mm=Number(m[2]); if(hh>23||mm>59) return null;
+    const base=new Date();
+    base.setHours(hh,mm,0,0);
+    if(assumeYesterday) base.setDate(base.getDate()-1);
+    return base.getTime();
+  }
+  const fstop=document.querySelector('[data-faststop]');
+  if(fstop) fstop.onclick=async()=>{ ensure().fastStop=nowMs(); await save(); render();
+    toast('Fast started','The clock is running. Break it when you eat tomorrow.');};
+  const fstart=document.querySelector('[data-faststart]');
+  if(fstart) fstart.onclick=async()=>{
+    ensure().fastStart=nowMs(); await save(); render(); checkNewBadges();
+    const t=fastTier(fastHours(viewDay));
+    if(t.k>=1) toast(t.label+'!', Math.round(fastHours(viewDay))+' hours. Well held.');};
+  const fx=document.querySelector('[data-fixstop]');
+  if(fx) fx.onclick=async()=>{
+    const cur=state.logs[viewDay]&&state.logs[viewDay].fastStop;
+    const def=cur?new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(cur)):'22:00';
+    const v=prompt('When did you actually stop eating last night? 24-hour time, e.g. 22:00',def);
     if(v===null) return;
-    const m=/^(\d{1,2}):(\d{2})$/.exec(v.trim());
-    if(!m){alert('Enter it like 22:00.');return;}
-    let [nh,nm]=now.split(':').map(Number);
-    let eh=Number(m[1]), em=Number(m[2]);
-    if(eh>23||em>59){alert('That is not a valid time.');return;}
-    // hours from last meal until now; if the meal time is later than now, it was yesterday
-    let mins=(nh*60+nm)-(eh*60+em);
-    if(mins<0) mins+=1440;
-    const hrs=Math.floor(mins/60);
-    state.logs[viewDay]=state.logs[viewDay]||{};
-    state.logs[viewDay].fastH=hrs;
-    await save(); render(); checkNewBadges();
-    const t=fastTier(hrs);
-    if(t.k>=1) toast(t.label+'!', hrs+' clean hours since your last meal.');};
+    const ms=stampFromHHMM(v,true);   // stopping is the previous evening
+    if(!ms){alert('Enter it like 22:00.');return;}
+    ensure().fastStop=ms; await save(); render();};
   const cf=document.querySelector('[data-clearfast]');
   if(cf) cf.onclick=async()=>{
-    if(state.logs[viewDay]) delete state.logs[viewDay].fastH;
-    if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
-    await save(); render();};
+    if(state.logs[viewDay]){delete state.logs[viewDay].fastStop; delete state.logs[viewDay].fastStart;}
+    tidy(); await save(); render();};
+
   document.querySelectorAll('[data-sugar]').forEach(b=>b.onclick=async()=>{
-    state.logs[viewDay]=state.logs[viewDay]||{};
+    ensure();
     const v=b.dataset.sugar;
     if(state.logs[viewDay].sugar===v) delete state.logs[viewDay].sugar; else state.logs[viewDay].sugar=v;
-    if(!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
-    await save(); render(); checkNewBadges();});
+    tidy(); await save(); render(); checkNewBadges();});
   document.querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{
     const n=Number(b.dataset.water);
     state.logs[viewDay]=state.logs[viewDay]||{};
@@ -1245,6 +1320,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
+setInterval(()=>{ if(page==='diet' && fastRunning(viewDay)) render(); }, 60000);
 load();
 </script>
 </body>

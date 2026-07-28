@@ -272,15 +272,23 @@
   .sf-side{flex:1}
   .sf-best{font-size:15px;font-weight:800} .sf-best b{font-family:'Varela Round',sans-serif;font-size:20px;color:var(--go)}
   .sf-tot{font-size:12px;font-weight:700;color:var(--muted);margin-top:4px}
-  .sugarwrap{margin-top:16px;background:var(--paper);border-radius:14px;padding:6px 14px}
-  .srow{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:14px;font-weight:700;border-bottom:1px solid var(--line)}
-  .srow:last-child{border-bottom:0}
-  .sdot{width:7px;height:7px;border-radius:99px;background:var(--go);flex-shrink:0}
-  .sugar3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
-  .sugar3 button{background:var(--paper);border:1.5px solid var(--line);color:var(--muted);border-radius:14px;padding:15px 6px;font-size:14px}
-  .sugar3 button.clean.on{background:var(--go);color:#fff;border-color:var(--go)}
-  .sugar3 button.cheat.on{background:var(--gold);color:#fff;border-color:var(--gold)}
-  .sugar3 button.slip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .swins{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+  .swin{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--paper);
+    border:1.5px solid var(--line);border-radius:14px;padding:14px;color:var(--ink);font-size:15px;font-weight:800}
+  .swin:hover{border-color:var(--go)}
+  .swin .sbox{width:26px;height:26px;flex-shrink:0;border-radius:8px;border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;transition:all .16s}
+  .swin .slabel{flex:1;min-width:0}
+  .swin .spts{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.04em}
+  .swin.on{background:var(--wash);border-color:var(--go)}
+  .swin.on .sbox{background:var(--go);border-color:var(--go)}
+  .swin.on .spts{color:var(--go)}
+  .swin.muted{opacity:.45}
+  .sweepnote{font-size:13px;font-weight:800;color:var(--muted);margin-top:12px;text-align:center}
+  .sugar2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .sugar2 button{background:#fff;border:1.5px solid var(--line);color:var(--muted);border-radius:14px;padding:14px 6px;font-size:14px}
+  .sugar2 button.cheat.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .sugar2 button.slip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
   .card.cheated{border-color:var(--gold)}
   .sflame.paused{background:linear-gradient(180deg,#FBF4E6,#fff);border-color:var(--gold)}
   .sflame.paused .sf-n{color:var(--gold)}
@@ -368,7 +376,7 @@ const DEFAULT_CFG={
         B:{name:'Chini',ex:['plank','flutter','twists','tucks']}},
   stepGoal:2000,
   restTarget:2,
-  waterGoal:8,
+  waterGoal:4,
   fastFloor:12, fastGood:14, fastFull:16,
   sugarList:['No soda','No sugar in tea','No sweets or biscuits','No packaged juice or energy drinks'],
   per:Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.per])),
@@ -429,7 +437,7 @@ function workXP(){
     xp+=Math.min(24,Math.floor(got('steps',d)/500)*2);
     if(setDone(d)) xp+=15;
     if(fastKept(d)) xp+=15;
-    if(sugarState(d)==='clean') xp+=20;
+    if(!sugarOverride(d)){ xp += sugarTicks(d).length*5; if(sugarState(d)==='clean') xp+=10; }
     xp+=Math.min(state.cfg.waterGoal,water(d))*2;
   });
   Object.keys(state.plan).forEach(d=>{ if(state.plan[d]==='rest'&&d<=todayStr()) xp+=4; });
@@ -571,17 +579,30 @@ function fastTier(h){
 }
 const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;
 
-// ---- sugar: 'clean' | 'cheat' | 'slip'. clean builds the run; cheat pauses it (planned); slip breaks it. ----
-const sugarState=d=>(state.logs[d]||{}).sugar;
+// ---- sugar: each day stores sugarTicks (which of the 4 items were beaten) + an optional
+//      override 'cheat' | 'slip'. All four ticked = a clean day that builds the streak. ----
+const sugarTicks=d=>(state.logs[d]||{}).sugarTicks||[];
+const sugarOverride=d=>(state.logs[d]||{}).sugar;   // 'cheat' | 'slip' | undefined
+const NSUGAR=()=>state.cfg.sugarList.length;
+// derived day state used by the streak
+function sugarState(d){
+  const o=sugarOverride(d);
+  if(o==='cheat'||o==='slip') return o;
+  const t=sugarTicks(d).length;
+  if(t>=NSUGAR()) return 'clean';        // full sweep
+  if(t>0) return 'partial';              // some wins, streak waits
+  return undefined;                      // nothing logged
+}
 function sugarStreak(){
-  // walk back from today; clean adds, cheat is skipped (neutral), slip stops.
+  // walk back from today; clean adds, cheat pauses, partial/slip/gap stops.
   let run=0, d=todayStr();
-  if(sugarState(d)===undefined) d=addDays(d,-1);
+  const st0=sugarState(d);
+  if(st0===undefined||st0==='partial') d=addDays(d,-1);   // an unfinished today doesn't break yesterday's run
   while(true){
     const st=sugarState(d);
     if(st==='clean'){ run++; d=addDays(d,-1); }
-    else if(st==='cheat'){ d=addDays(d,-1); }   // planned: pause, don't add, don't break
-    else break;                                  // slip or unmarked gap ends the run
+    else if(st==='cheat'){ d=addDays(d,-1); }   // planned pause: neither adds nor breaks
+    else break;                                  // partial, slip, or gap ends the run
   }
   return run;
 }
@@ -591,7 +612,7 @@ function bestSugarStreak(){
   ds.forEach(d=>{
     const st=sugarState(d), consec=prev&&addDays(prev,1)===d;
     if(st==='clean'){ run=consec?run+1:1; }
-    else if(st==='cheat'){ run=consec?run:0; }   // cheat keeps a consecutive run alive but adds nothing
+    else if(st==='cheat'){ run=consec?run:0; }
     else { run=0; }
     best=Math.max(best,run); prev=d;
   });
@@ -609,7 +630,7 @@ function missionsFor(d){
     have:Math.min(steps,goal), need:goal};
 
   const fastM={n:'Fast 12 hours or more', pts:20, have:Math.min(Math.floor(fastHours(d)),state.cfg.fastFloor), need:state.cfg.fastFloor};
-  const sugarM={n:'Keep the day sugar-free', pts:20, have:sugarState(d)==='clean'?1:0, need:1};
+  const sugarM={n:'Beat all '+NSUGAR()+' sugar sources', pts:20, have:sugarOverride(d)?0:sugarTicks(d).length, need:NSUGAR()};
   const waterM={n:'Drink '+state.cfg.waterGoal+' glasses of water', pts:15, have:Math.min(water(d),state.cfg.waterGoal), need:state.cfg.waterGoal};
   if(!sel){
     return [
@@ -648,6 +669,7 @@ async function load(){
       state.cfg=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)),s.cfg||{});
       state.cfg.year=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG.year)),state.cfg.year||{});
       if(!state.cfg.nameTouched){state.cfg.sets.A.name=DEFAULT_CFG.sets.A.name;state.cfg.sets.B.name=DEFAULT_CFG.sets.B.name;}
+      if(state.cfg.waterGoal===8&&!state.cfg.waterTouched) state.cfg.waterGoal=4;
     }
   }catch(e){}
   viewDay=todayStr();
@@ -992,10 +1014,19 @@ function dietPage(){
 
   const glasses=[...Array(Math.max(goal,g))].map((_,i)=>
     `<div class="glass ${i<g?'full':''}" data-water="${i+1}"></div>`).join('');
-  const listRows=state.cfg.sugarList.map(x=>`<div class="srow"><span class="sdot"></span>${x}</div>`).join('');
 
-  const streakLabel = sug==='cheat' ? 'day'+(run===1?'':'s')+' clean, paused today'
-                                    : 'day'+(run===1?'':'s')+' clean';
+  const ticks=sugarTicks(d), override=sugarOverride(d);
+  const nTicked=ticks.length, nTotal=NSUGAR();
+  // the four wins, each tappable and worth points; disabled look when the day is a cheat/slip
+  const tickRows=state.cfg.sugarList.map((x,i)=>{
+    const on=ticks.includes(i);
+    return `<button class="swin ${on?'on':''} ${override?'muted':''}" data-tick="${i}">
+      <span class="sbox">${on?'&#10003;':''}</span><span class="slabel">${x}</span>
+      <span class="spts">+5</span></button>`;
+  }).join('');
+
+  const streakLabel = override==='cheat' ? 'clean, paused today'
+                    : (run===1?'day clean':'days clean');
 
   return `
   ${pageHead('Diet','The fast sets the deficit, no sugar protects it, water carries you through.')}
@@ -1018,14 +1049,14 @@ function dietPage(){
         <div class="sf-tot">${cheats} cheat day${cheats===1?'':'s'} this month</div>
       </div>
     </div>
-    <div class="sugarwrap">${listRows}</div>
-    <div class="sugar3">
-      <button class="clean ${sug==='clean'?'on':''}" data-sugar="clean">${sug==='clean'?'\u2713 Clean':'Clean'}</button>
-      <button class="cheat ${sug==='cheat'?'on':''}" data-sugar="cheat">${sug==='cheat'?'Cheat day':'Cheat day'}</button>
-      <button class="slip ${sug==='slip'?'on':''}" data-sugar="slip">${sug==='slip'?'Slipped':'Slip'}</button>
+    <div class="swins">${tickRows}</div>
+    ${!override?`<p class="sweepnote">${nTicked>=nTotal?'&#10003; All four beaten \u2014 today counts, the streak climbs.':nTicked+' of '+nTotal+' beaten. '+(nTotal-nTicked)+' more to make today a clean day.'}</p>`:''}
+    <div class="sugar2">
+      <button class="cheat ${override==='cheat'?'on':''}" data-sugar="cheat">${override==='cheat'?'&#10003; Cheat day':'Cheat day'}</button>
+      <button class="slip ${override==='slip'?'on':''}" data-sugar="slip">${override==='slip'?'&#10003; Slipped':'I slipped'}</button>
     </div>
-    ${sug==='cheat'?`<p class="cheattext">Planned and honest. Your run of ${run} holds \u2014 it won't climb today, but a birthday shouldn't cost you the wall you built. Back to clean tomorrow.</p>`:''}
-    ${sug==='slip'?`<p class="sliptext">Noted. Your best run of ${best} stays as the mark to beat, and a fresh run starts. One day doesn't undo the work. If this was planned, mark it a cheat day instead.</p>`:''}
+    ${override==='cheat'?`<p class="cheattext">Planned and honest. Your run of ${run} holds \u2014 it won't climb today, but a birthday shouldn't cost you the wall you built. Back to clean tomorrow.</p>`:''}
+    ${override==='slip'?`<p class="sliptext">Noted. Your best run of ${best} stays as the mark to beat, and a fresh run starts. One day doesn't undo the work. If this was planned, mark it a cheat day instead.</p>`:''}
   </div>
 
   <div class="card">
@@ -1038,7 +1069,7 @@ function dietPage(){
 
   <div class="card">
     <div class="cap">How this adds up</div>
-    <p class="lede" style="margin-top:0">A fast of twelve hours or more is 15 points, a sugar-free day 20, and every glass of water 2. The fast sets your deficit, no sugar protects it, water carries you through the hungry hours. Small wins, every day.</p>
+    <p class="lede" style="margin-top:0">A fast of twelve hours or more is 15 points. Each sugar source you beat is 5, and beating all four adds 10 more \u2014 thirty for a fully clean day. Every glass of water is 2. Small wins, all day long.</p>
   </div>`;
 }
 
@@ -1120,7 +1151,8 @@ function progPage(){
       <tr><td>Steps, per 500 walked</td><td>2</td></tr>
       <tr><td>A rest day you chose</td><td>4</td></tr>
       <tr><td>A fast of 12 hours or more</td><td>15</td></tr>
-      <tr><td>A sugar-free day</td><td>20</td></tr>
+      <tr><td>Each sugar source beaten</td><td>5</td></tr>
+      <tr><td>All four beaten (clean day)</td><td>+10</td></tr>
       <tr><td>Water, per glass</td><td>2</td></tr>
       <tr><td>A badge, by tier</td><td>50 &middot; 120 &middot; 250</td></tr>
       <tr><td>A weekly mission</td><td>60 to 170</td></tr>
@@ -1222,10 +1254,24 @@ function wire(){
     if(state.logs[viewDay]){delete state.logs[viewDay].fastStop; delete state.logs[viewDay].fastStart;}
     tidy(); await save(); render();};
 
+  // tap a single win: toggle that item; clears any cheat/slip override
+  document.querySelectorAll('[data-tick]').forEach(b=>b.onclick=async()=>{
+    const i=Number(b.dataset.tick);
+    const l=ensure();
+    delete l.sugar;                       // ticking a win means the day isn't a cheat/slip
+    const set=new Set(l.sugarTicks||[]);
+    const wasFull=set.size>=NSUGAR();
+    if(set.has(i)) set.delete(i); else set.add(i);
+    l.sugarTicks=[...set].sort((a,b)=>a-b);
+    if(!l.sugarTicks.length) delete l.sugarTicks;
+    tidy(); await save(); render(); checkNewBadges();
+    if(!wasFull && set.size>=NSUGAR()) toast('Clean day!','All four beaten. Streak climbs. +'+(NSUGAR()*5+10)+' points.');});
+  // cheat / slip override: replaces the ticks for the day
   document.querySelectorAll('[data-sugar]').forEach(b=>b.onclick=async()=>{
-    ensure();
+    const l=ensure();
     const v=b.dataset.sugar;
-    if(state.logs[viewDay].sugar===v) delete state.logs[viewDay].sugar; else state.logs[viewDay].sugar=v;
+    if(l.sugar===v){ delete l.sugar; }
+    else { l.sugar=v; delete l.sugarTicks; }
     tidy(); await save(); render(); checkNewBadges();});
   document.querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{
     const n=Number(b.dataset.water);
@@ -1243,7 +1289,7 @@ function wire(){
   const wg=document.querySelector('[data-watergoal]');
   if(wg) wg.onclick=async()=>{
     const v=prompt('Glasses of water a day:',state.cfg.waterGoal);
-    if(v&&Number(v)>0){state.cfg.waterGoal=Math.round(Number(v)); await save(); render();}};
+    if(v&&Number(v)>0){state.cfg.waterGoal=Math.round(Number(v)); state.cfg.waterTouched=true; await save(); render();}};
   const rd=document.querySelector('[data-restdays]');
   if(rd) rd.onclick=async()=>{
     const v=prompt('How many rest days are you aiming for each week?',state.cfg.restTarget);

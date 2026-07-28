@@ -261,6 +261,29 @@
   .fastbar u span{position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;color:var(--muted);white-space:nowrap}
   .fastbar u.lit{background:var(--go)} .fastbar u.lit span{color:var(--go)}
   .fasttiers{font-size:12px;font-weight:700;color:var(--muted);margin-top:30px;text-align:center}
+  .timepick{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .tprow{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px}
+  .tplabel b{display:block;font-size:15px;font-weight:800}
+  .tplabel span{font-size:12px;font-weight:700;color:var(--muted)}
+  .tpsel{display:flex;align-items:center;gap:4px}
+  .tpsel select{font-family:Nunito,sans-serif;font-weight:800;font-size:17px;color:var(--ink);
+    background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;outline:none;
+    -webkit-appearance:none;appearance:none;text-align:center;min-width:64px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C7A68' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;padding-right:26px}
+  .tpsel select:focus{border-color:var(--go);box-shadow:0 0 0 3px var(--wash)}
+  .tpcolon{font-family:'Varela Round',sans-serif;font-size:18px;color:var(--muted)}
+  .fastreveal{margin-top:18px;border-radius:18px;padding:20px;text-align:center;
+    background:var(--paper);border:1.5px solid var(--line);transition:all .3s ease}
+  .fastreveal.k1,.fastreveal.k2{background:var(--wash);border-color:var(--go)}
+  .fastreveal.k3{background:linear-gradient(180deg,#FBF4E6,#fff);border-color:var(--gold)}
+  .fr-num{font-family:'Varela Round',sans-serif;font-size:52px;line-height:1;color:var(--rest)}
+  .fastreveal.k1 .fr-num,.fastreveal.k2 .fr-num{color:var(--go)}
+  .fastreveal.k3 .fr-num{color:var(--gold)}
+  .fr-num em{font-style:normal;display:block;font-size:13px;font-weight:800;color:var(--muted);
+    letter-spacing:.1em;text-transform:uppercase;margin-top:8px}
+  .fr-tier{font-size:15px;font-weight:800;margin-top:12px;color:var(--ink)}
 
   /* sugar streak */
   .card.clean{border-color:var(--go)}
@@ -376,10 +399,10 @@ const DEFAULT_CFG={
   stepGoal:2000,
   restTarget:2,
   waterGoal:4,
-  fastFloor:12, fastGood:14, fastFull:16, breakHour:14,
+  fastFloor:12, fastGood:14, fastFull:16,
   sugarList:['No soda','No sugar in tea','No sweets or biscuits','No packaged juice or energy drinks'],
   per:Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.per])),
-  year:Object.assign({steps:400000},Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.year])))
+  year:Object.assign({steps:400000,fastDays:200},Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.year])))
 };
 
 let state={cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),logs:{},plan:{},seen:[]};
@@ -435,7 +458,10 @@ function workXP(){
     });
     xp+=Math.min(24,Math.floor(got('steps',d)/500)*2);
     if(setDone(d)) xp+=15;
-    if(fastKept(d)) xp+=15;
+    { const fh=fastHours(d);
+      if(fh>=state.cfg.fastFull) xp+=25;
+      else if(fh>=state.cfg.fastGood) xp+=18;
+      else if(fh>=state.cfg.fastFloor) xp+=12; }
     if(!sugarOverride(d)){ xp += sugarTicks(d).length*5; if(sugarState(d)==='clean') xp+=10; }
     xp+=Math.min(state.cfg.waterGoal,water(d))*2;
   });
@@ -551,36 +577,87 @@ const BADGES=[
   B('First clean day','A single sugar-free day',1,()=>({have:cleanDaysTotal(),need:1})),
   B('Ten fasts','Reach 12h+ on 10 days',1,()=>({have:Object.keys(state.logs).filter(d=>fastHours(d)>=state.cfg.fastFloor).length,need:10})),
   B('Full sixteen','Hit a full 16-hour fast',2,()=>({have:Object.keys(state.logs).some(d=>fastHours(d)>=state.cfg.fastFull)?1:0,need:1})),
-  B('Hydrated','Hit your water goal on 20 days',2,()=>({have:Object.keys(state.logs).filter(d=>water(d)>=state.cfg.waterGoal).length,need:20}))
+  B('Hydrated','Hit your water goal on 20 days',2,()=>({have:Object.keys(state.logs).filter(d=>water(d)>=state.cfg.waterGoal).length,need:20})),
+
+  // ---- fasting (new) ----
+  B('First fast','Log a 12h+ fast once',1,()=>({have:fastDays(),need:1})),
+  B('Five fasts','Log a 12h+ fast on 5 days',1,()=>({have:fastDays(),need:5})),
+  B('Twenty fasts','Log a 12h+ fast on 20 days',2,()=>({have:fastDays(),need:20})),
+  B('Fifty fasts','Log a 12h+ fast on 50 days',3,()=>({have:fastDays(),need:50})),
+  B('Fasting week','A 7-day fasting streak',2,()=>({have:bestFastStreak(),need:7})),
+  B('Fasting fortnight','A 14-day fasting streak',3,()=>({have:bestFastStreak(),need:14})),
+  B('Fasting month','A 30-day fasting streak',3,()=>({have:bestFastStreak(),need:30})),
+  B('Ten full sixteens','Reach 16h on 10 days',3,()=>({have:fullFastDays(),need:10})),
+  B('Long hauler','Hold a single fast to 18h',3,()=>({have:longestFast()>=18?1:0,need:1})),
+  B('Hundred hours','100 total hours fasted',2,()=>({have:Math.floor(totalFastHours()),need:100})),
+  B('Five hundred hours','500 total hours fasted',3,()=>({have:Math.floor(totalFastHours()),need:500})),
+
+  // ---- crossovers & consistency (new) ----
+  B('Perfect day','Set, steps, fast and clean sugar in one day',3,()=>({have:perfectDays(),need:1})),
+  B('Five perfect days','Five all-round perfect days',3,()=>({have:perfectDays(),need:5})),
+  B('Two hundred fifty','250 sugar-free days total',3,()=>({have:cleanDaysTotal(),need:250})),
+  B('Hundred clean','100 sugar-free days total',3,()=>({have:cleanDaysTotal(),need:100})),
+  B('Million steps','1,000,000 steps walked',3,()=>({have:totalAll('steps'),need:1000000})),
+  B('Fifty thousand reps','50,000 total reps and seconds',3,()=>({have:allRepTotal(),need:50000})),
+  B('Two hundred sets','Complete 200 sets',3,()=>({have:sessions(),need:200})),
+  B('Sixty day streak','A 60-day training streak',3,()=>({have:bestStreak(),need:60})),
+  B('Level ten','Reach level 10',3,()=>({have:levelFromXP(workXP()+missionXP()).lv,need:10}))
 ];
 
 /* ================= diet ================= */
 const water=d=>Number((state.logs[d]||{}).water)||0;
 
-// ---- fast: you type the time you stopped eating the night before (stopHHMM, e.g. '22:00').
-//      The fast runs from then to your break time (breakHour, default 14:00) and counts for
-//      the day you break it. Stop at 22:00 -> break 14:00 = 16h. Stop at midnight = 14h. ----
-const breakHour=()=>state.cfg.breakHour;   // hour of day (0-23) you break the fast, e.g. 14
+// ---- fast: two clock times you can fill any time. lastAte = HH:MM yesterday evening,
+//      firstAte = HH:MM today. Hours run from lastAte, across midnight, to firstAte.
+//      Counts for the day you broke it (the day being viewed). ----
+const toMin=hhmm=>{const m=/^(\d{1,2}):(\d{2})$/.exec(hhmm||'');return m?Number(m[1])*60+Number(m[2]):null;};
 function fastHours(d){
   const l=state.logs[d]||{};
-  if(!l.stopHHMM) return 0;
-  const m=/^(\d{1,2}):(\d{2})$/.exec(l.stopHHMM); if(!m) return 0;
-  const stopMin=Number(m[1])*60+Number(m[2]);
-  const breakMin=breakHour()*60;
-  // stop time is the evening before the break. hours = from stop, forward across midnight, to break.
-  let mins=(24*60 - stopMin) + breakMin;      // e.g. (1440-1320)+840 = 960 = 16h for 22:00 -> 14:00
-  if(stopMin<=breakMin) mins = breakMin - stopMin;  // safety: same-day stop before break
+  const a=toMin(l.lastAte), b=toMin(l.firstAte);
+  if(a===null||b===null) return 0;
+  // if last ate is later in the clock than first ate, it was the previous evening (crosses midnight);
+  // if it's earlier (e.g. ate at 1am, broke at 2pm same day), it's a same-day gap.
+  let mins = a>b ? (24*60 - a) + b : b - a;
   return Math.max(0, mins/60);
 }
+const fastLogged=d=>{const l=state.logs[d]||{};return l.lastAte&&l.firstAte;};
 function fastTier(h){
   const f=state.cfg;
   if(h>=f.fastFull) return {k:3,label:'Full 16:8',note:'Best tier'};
-  if(h>=f.fastGood) return {k:2,label:'Strong fast',note:''};
-  if(h>=f.fastFloor) return {k:1,label:'Solid fast',note:''};
-  if(h>0) return {k:0,label:'Short fast',note:''};
+  if(h>=f.fastGood) return {k:2,label:'Strong fast',note:'So close to full'};
+  if(h>=f.fastFloor) return {k:1,label:'Solid fast',note:'Good hold'};
+  if(h>0) return {k:0,label:'Short fast',note:'Every hour counts'};
   return {k:-1,label:'Not logged',note:''};
 }
 const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;
+
+// ---- fasting aggregates for gamification ----
+const fastDays=()=>Object.keys(state.logs).filter(d=>fastKept(d)).length;              // days at 12h+
+const fastDays_year=()=>Object.keys(state.logs).filter(d=>d.slice(0,4)==='2026'&&fastKept(d)).length;
+const fullFastDays=()=>Object.keys(state.logs).filter(d=>fastHours(d)>=state.cfg.fastFull).length; // 16h+
+const totalFastHours=()=>Object.keys(state.logs).reduce((s,d)=>s+(fastKept(d)?fastHours(d):0),0);
+function fastStreak(){
+  // consecutive days (ending today or yesterday) with a 12h+ fast logged
+  let run=0, d=todayStr();
+  if(!fastKept(d)) d=addDays(d,-1);
+  while(fastKept(d)){ run++; d=addDays(d,-1); }
+  return run;
+}
+function bestFastStreak(){
+  const ds=Object.keys(state.logs).filter(fastKept).sort();
+  let best=0,run=0,prev=null;
+  ds.forEach(d=>{ run=(prev&&addDays(prev,1)===d)?run+1:1; best=Math.max(best,run); prev=d; });
+  return Math.max(best,fastStreak());
+}
+const longestFast=()=>Math.max(0,...Object.keys(state.logs).map(fastHours));
+// a "perfect day": set cleared + steps goal + 12h fast + clean sugar
+function perfectDays(){
+  return Object.keys(state.logs).filter(d=>{
+    const s=setOn(d);
+    return s&&s!=='rest'&&setDone(d)&&got('steps',d)>=state.cfg.stepGoal
+      &&fastKept(d)&&sugarState(d)==='clean';
+  }).length;
+}
 
 // ---- sugar: each day stores sugarTicks (which of the 4 items were beaten) + an optional
 //      override 'cheat' | 'slip'. All four ticked = a clean day that builds the streak. ----
@@ -632,18 +709,20 @@ function missionsFor(d){
   const stepMission={n:'Walk '+goal.toLocaleString()+' steps', pts:25,
     have:Math.min(steps,goal), need:goal};
 
-  const fastM={n:'Fast 12 hours or more', pts:20, have:Math.min(Math.floor(fastHours(d)),state.cfg.fastFloor), need:state.cfg.fastFloor};
+  const fh=Math.floor(fastHours(d));
+  const fastM={n:'Fast 12 hours', pts:20, have:Math.min(fh,state.cfg.fastFloor), need:state.cfg.fastFloor};
+  const fullFastM={n:'Reach a full 16h fast', pts:25, have:Math.min(fh,state.cfg.fastFull), need:state.cfg.fastFull};
   const sugarM={n:'Beat all '+NSUGAR()+' sugar sources', pts:20, have:sugarOverride(d)?0:sugarTicks(d).length, need:NSUGAR()};
   const waterM={n:'Drink '+state.cfg.waterGoal+' glasses of water', pts:15, have:Math.min(water(d),state.cfg.waterGoal), need:state.cfg.waterGoal};
   if(!sel){
     return [
       {n:'Choose today: Juu, Chini or Rest', pts:10, have:0, need:1},
-      stepMission, fastM, sugarM, waterM
+      stepMission, fastM, fullFastM, sugarM, waterM
     ];
   }
   if(sel==='rest'){
     return [
-      stepMission, fastM, sugarM, waterM,
+      stepMission, fastM, fullFastM, sugarM, waterM,
       {n:'Rest day taken', pts:10, have:1, need:1}
     ];
   }
@@ -654,7 +733,7 @@ function missionsFor(d){
     {n:'Start the '+setName(d)+' set', pts:10, have:Math.min(started,1), need:1},
     {n:'Finish all '+list.length+' exercises', pts:40, have:atTarget, need:list.length},
     stepMission,
-    fastM, sugarM, waterM
+    fastM, fullFastM, sugarM, waterM
   ];
 }
 function missionXP(){
@@ -1007,32 +1086,53 @@ function dietPage(){
   const streakLabel = override==='cheat' ? 'clean, paused today'
                     : (run===1?'day clean':'days clean');
 
-  // ---- fast (single input, break at breakHour, counts for the day you break it) ----
-  const h=fastHours(d), t=fastTier(h);
+  // ---- fast: two clock-time pickers (last ate yesterday, first ate today) ----
+  const h=fastHours(d), t=fastTier(h), logged=fastLogged(d);
   const hShown = h>0 ? (Number.isInteger(h)?h:h.toFixed(1)) : '\u2013';
-  const bh=breakHour(), bhLabel=(bh%12===0?12:bh%12)+(bh>=12?'pm':'am');
   const marks=[state.cfg.fastFloor,state.cfg.fastGood,state.cfg.fastFull];
   const maxH=18;
   const fastBar=`<div class="fastbar">
     <div class="fastfill k${Math.max(0,t.k)}" style="width:${Math.min(100,h/maxH*100)}%"></div>
     ${marks.map(m=>`<u style="left:${m/maxH*100}%" class="${h>=m?'lit':''}"><span>${m}h</span></u>`).join('')}
   </div>`;
-  let fastBody;
-  if(!l.stopHHMM){
-    fastBody = `<p class="lede" style="margin-top:8px">Type the time you stopped eating last night. It counts the hours through to your ${bhLabel} break.</p>
-      <button class="allbtn" data-setstop="1">Set my stop time</button>`;
-  } else {
-    fastBody = `<div class="fasthero">
-        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
-        <div class="fh-lab"><b>${t.label}</b><span>Stopped ${l.stopHHMM} \u2192 broke ${bhLabel}</span></div>
+  const hourLabel=i=>(i%12===0?12:i%12)+(i<12?'am':'pm');
+  // eveningFirst=true lists pm hours (12pm..11pm) then am (12am..11am) so a late meal is right at the top
+  const hourOpts=(sel,eveningFirst)=>{
+    let order=[...Array(24)].map((_,i)=>i);
+    if(eveningFirst) order=[...order.slice(12),...order.slice(0,12)];  // 12pm..11pm, then 12am..11am
+    return order.map(i=>`<option value="${i}" ${sel===i?'selected':''}>${hourLabel(i)}</option>`).join('');
+  };
+  const minOpts=(sel)=>[0,15,30,45].map(m=>`<option value="${m}" ${sel===m?'selected':''}>${String(m).padStart(2,'0')}</option>`).join('');
+  const parts=hhmm=>{const mm=toMin(hhmm); return mm===null?[null,null]:[Math.floor(mm/60),mm%60];};
+  const [lh,lm]=parts(l.lastAte), [fh,fm]=parts(l.firstAte);
+
+  const fastBody = `
+    <div class="timepick">
+      <div class="tprow">
+        <div class="tplabel"><b>Last ate</b><span>yesterday evening</span></div>
+        <div class="tpsel">
+          <select data-fasttime="lastAte-h">${hourOpts(lh,true)}</select>
+          <span class="tpcolon">:</span>
+          <select data-fasttime="lastAte-m">${minOpts(lm)}</select>
+        </div>
+      </div>
+      <div class="tprow">
+        <div class="tplabel"><b>First ate</b><span>today</span></div>
+        <div class="tpsel">
+          <select data-fasttime="firstAte-h">${hourOpts(fh,false)}</select>
+          <span class="tpcolon">:</span>
+          <select data-fasttime="firstAte-m">${minOpts(fm)}</select>
+        </div>
+      </div>
+    </div>
+    ${logged?`
+      <div class="fastreveal k${Math.max(0,t.k)}">
+        <div class="fr-num">${hShown}<em>hours fasted</em></div>
+        <div class="fr-tier">${t.label}${t.note?` &middot; ${t.note}`:''}</div>
       </div>
       ${fastBar}
-      <div class="ghostrow" style="margin-top:16px">
-        <button class="ghost" data-setstop="1">Change stop time</button>
-        <button class="ghost" data-breakhour="1">Break time (${bhLabel})</button>
-        <button class="ghost" data-clearfast="1">Clear</button>
-      </div>`;
-  }
+      <div class="ghostrow" style="margin-top:14px"><button class="ghost" data-clearfast="1">Clear</button></div>
+    `:`<p class="lede" style="margin-top:14px;text-align:center">Set both times and your hours appear here.</p>`}`;
 
   return `
   ${pageHead('Diet','No sugar protects the deficit, water carries you through, the fast sets it.')}
@@ -1069,7 +1169,7 @@ function dietPage(){
 
   <div class="card">
     <div class="cap">Your fast</div>
-    <h2 style="font-size:19px">${!l.stopHHMM?'Log last night\u2019s fast':'Today\u2019s fast'}</h2>
+    <h2 style="font-size:19px">${!fastLogged(d)?'Log your fast':'Today\u2019s fast'}</h2>
     ${fastBody}
     <p class="fasttiers">12h solid \u00b7 14h strong \u00b7 16h full 16:8</p>
   </div>`;
@@ -1134,6 +1234,36 @@ function progPage(){
   </div>
 
   <div class="card">
+    <div class="cap">Fasting progress</div>
+    <p class="lede" style="margin-top:0;margin-bottom:14px">Your 16:8 discipline, tracked and rewarded.</p>
+    ${(()=>{
+      const fd=fastDays(), full=fullFastDays(), hrs=Math.round(totalFastHours());
+      const fs=fastStreak(), bfs=bestFastStreak(), longest=longestFast();
+      const yearFastGoal=state.cfg.year.fastDays||200;
+      const bars=[
+        ['Days fasted this year', fastDays_year(), yearFastGoal, 'days at 12h+'],
+        ['Full 16h days', full, Math.max(20,Math.ceil(full/10)*10+10), 'days at the full tier'],
+        ['Total hours fasted', hrs, Math.max(200,Math.ceil(hrs/100)*100+100), 'hours banked']
+      ];
+      return bars.map(([label,val,goal,sub])=>{
+        const pct=Math.min(100,val/goal*100);
+        return `<div class="trow">
+          <div class="top"><b>${label}</b><span><em>${val.toLocaleString()}</em> / ${goal.toLocaleString()}</span></div>
+          <div class="tbar"><i style="width:${pct}%"></i></div>
+          <div class="pcts"><span>${pct.toFixed(0)}%</span><span>${sub}</span></div>
+        </div>`;}).join('');
+    })()}
+    <div class="tiles" style="margin-top:14px">
+      <div class="tile flame"><b>${fastStreak()}</b><span>fast streak</span></div>
+      <div class="tile"><b>${bestFastStreak()}</b><span>best fast streak</span></div>
+    </div>
+    <div class="tiles" style="margin-top:10px">
+      <div class="tile"><b>${longestFast()?Math.round(longestFast())+'h':'\u2013'}</b><span>longest fast</span></div>
+      <div class="tile"><b>${perfectDays()}</b><span>perfect days</span></div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="cap">Levels and ranks</div>
     <p class="lede" style="margin-bottom:8px">Every level costs 60 points more than the one before it.</p>
     ${RANKS.map((r,i)=>{
@@ -1157,7 +1287,9 @@ function progPage(){
       <tr><td>Clearing a whole set</td><td>15</td></tr>
       <tr><td>Steps, per 500 walked</td><td>2</td></tr>
       <tr><td>A rest day you chose</td><td>4</td></tr>
-      <tr><td>A fast of 12 hours or more</td><td>15</td></tr>
+      <tr><td>A 12-hour fast</td><td>12</td></tr>
+      <tr><td>A 14-hour fast</td><td>18</td></tr>
+      <tr><td>A full 16-hour fast</td><td>25</td></tr>
       <tr><td>Each sugar source beaten</td><td>5</td></tr>
       <tr><td>All four beaten (clean day)</td><td>+10</td></tr>
       <tr><td>Water, per glass</td><td>2</td></tr>
@@ -1331,25 +1463,23 @@ function wire(){
   // ---- fast: one input, the stop time. break time is fixed (default 2pm). ----
   const ensure=()=>{state.logs[viewDay]=state.logs[viewDay]||{};return state.logs[viewDay];};
   const tidy=()=>{if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];};
-  const ss=document.querySelector('[data-setstop]');
-  if(ss) ss.onclick=async()=>{
-    const cur=(state.logs[viewDay]||{}).stopHHMM||'22:00';
-    const v=prompt('What time did you stop eating last night? 24-hour time, e.g. 22:00 for 10pm.',cur);
-    if(v===null) return;
-    const m=/^(\d{1,2}):(\d{2})$/.exec(v.trim());
-    if(!m||Number(m[1])>23||Number(m[2])>59){alert('Enter it like 22:00.');return;}
-    ensure().stopHHMM=(m[1].padStart(2,'0'))+':'+m[2];
+  // fast time pickers: each change writes lastAte / firstAte, then re-renders to reveal the tier
+  document.querySelectorAll('[data-fasttime]').forEach(sel=>sel.onchange=async()=>{
+    const [field,part]=sel.dataset.fasttime.split('-');
+    const l=ensure();
+    const cur=toMin(l[field]); 
+    let hh=cur!==null?Math.floor(cur/60):0, mm=cur!==null?cur%60:0;
+    if(part==='h') hh=Number(sel.value); else mm=Number(sel.value);
+    l[field]=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+    const wasKept=false;
     await save(); render(); checkNewBadges();
-    const t=fastTier(fastHours(viewDay));
-    if(t.k>=1) toast(t.label+'!', Math.round(fastHours(viewDay))+' hours since your last meal. Well held.');};
-  const bhr=document.querySelector('[data-breakhour]');
-  if(bhr) bhr.onclick=async()=>{
-    const v=prompt('What time do you usually break the fast? 24-hour, e.g. 14 for 2pm.',state.cfg.breakHour);
-    const n=Number(v);
-    if(v!==null && n>=0 && n<=23){ state.cfg.breakHour=Math.round(n); await save(); render(); }};
+    if(fastLogged(viewDay)){
+      const t=fastTier(fastHours(viewDay));
+      if(t.k>=2) toast(t.label+'!', Math.round(fastHours(viewDay))+' hours fasted. Strong hold.');
+    }});
   const cf=document.querySelector('[data-clearfast]');
   if(cf) cf.onclick=async()=>{
-    if(state.logs[viewDay]) delete state.logs[viewDay].stopHHMM;
+    if(state.logs[viewDay]){delete state.logs[viewDay].lastAte; delete state.logs[viewDay].firstAte;}
     tidy(); await save(); render();};
 
   // tap a single win: toggle that item; clears any cheat/slip override

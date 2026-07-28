@@ -1201,52 +1201,52 @@ function progPage(){
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
   ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function makeShareCard(){
-  const W=1080, H=1350, s=2;              // portrait, phone-friendly, 2x for crispness
+  const W=1080, H=1350, s=3;              // 3x = ~3240x4050, high-res and crisp
   const c=document.createElement('canvas'); c.width=W*s; c.height=H*s;
   const x=c.getContext('2d'); x.scale(s,s);
+  x.textBaseline='alphabetic';
 
-  // gather the numbers
+  // numbers
   const xp=totalXP(), L=levelFromXP(xp);
   const done=sessions(), st=streak(), sug=bestSugarStreak();
   const steps=totalAll('steps'), gotB=badgeState().filter(b=>b.got).length;
-  const started=Object.keys(state.logs).sort()[0];
-  const daysIn = started ? Math.round((parse(todayStr())-parse(started))/86400000)+1 : 1;
-
-  // background
-  const g=x.createLinearGradient(0,0,W,H);
-  g.addColorStop(0,'#025B25'); g.addColorStop(1,'#003E18');
-  x.fillStyle=g; x.fillRect(0,0,W,H);
-  // soft circle accents
-  x.fillStyle='rgba(255,255,255,.05)';
-  x.beginPath(); x.arc(W-90,150,220,0,7); x.fill();
-  x.beginPath(); x.arc(70,H-120,160,0,7); x.fill();
+  const all=Object.keys(state.logs).sort();
+  const started=all[0]||todayStr();
+  const daysIn=Math.round((parse(todayStr())-parse(started))/86400000)+1;
 
   const F=(w,sz)=>`${w} ${sz}px Nunito, system-ui, sans-serif`;
   const RF=sz=>`400 ${sz}px "Varela Round", Nunito, sans-serif`;
 
-  // header
-  x.fillStyle='#8FE3B0'; x.font=F(800,30); x.textBaseline='alphabetic';
-  x.letterSpacing='6px';
-  x.fillText("FATU\u2019S HEALTH TRACKER", 72, 130);
+  // deep green background
+  const g=x.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'#02671F'); g.addColorStop(1,'#00360F');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.fillStyle='rgba(255,255,255,.055)';
+  x.beginPath(); x.arc(W-70,140,230,0,7); x.fill();
+  x.beginPath(); x.arc(60,H-100,180,0,7); x.fill();
+
+  // ---- header ----
+  x.textAlign='left';
+  x.fillStyle='#9BEDBC'; x.font=F(900,30); x.letterSpacing='7px';
+  x.fillText("FATU\u2019S HEALTH TRACKER", 72, 128);
   x.letterSpacing='0px';
-  x.fillStyle='#fff'; x.font=RF(72);
-  x.fillText(rankFor(L.lv), 72, 210);
-  x.fillStyle='rgba(255,255,255,.7)'; x.font=F(700,30);
-  x.fillText(`Level ${L.lv} \u00b7 Day ${daysIn} of the journey`, 74, 258);
+  x.fillStyle='#FFFFFF'; x.font=RF(78);
+  x.fillText(rankFor(L.lv), 70, 212);
+  x.fillStyle='#BFE9CE'; x.font=F(800,31);
+  x.fillText(`Level ${L.lv}`, 74, 262);
 
   // divider
-  x.strokeStyle='rgba(255,255,255,.14)'; x.lineWidth=2;
-  x.beginPath(); x.moveTo(72,310); x.lineTo(W-72,310); x.stroke();
+  x.strokeStyle='rgba(255,255,255,.16)'; x.lineWidth=2;
+  x.beginPath(); x.moveTo(72,306); x.lineTo(W-72,306); x.stroke();
 
-  // big point number
-  x.fillStyle='#fff'; x.font=RF(230); x.textAlign='left';
-  x.fillText(xp.toLocaleString(), 62, 540);
-  x.fillStyle='#8FE3B0'; x.font=F(800,40);
-  x.letterSpacing='2px';
-  x.fillText('POINTS EARNED', 74, 600);
+  // ---- hero points ----
+  x.fillStyle='#FFFFFF'; x.font=RF(236);
+  x.fillText(xp.toLocaleString(), 62, 552);
+  x.fillStyle='#9BEDBC'; x.font=F(900,42); x.letterSpacing='3px';
+  x.fillText('POINTS EARNED', 74, 612);
   x.letterSpacing='0px';
 
-  // stat grid
+  // ---- stat grid (white numbers, mint labels) ----
   const stats=[
     [done, 'sets completed'],
     [st, 'day streak'],
@@ -1255,26 +1255,28 @@ function makeShareCard(){
     [gotB, 'badges earned'],
     [L.lv, 'level reached']
   ];
-  const gx=66, gy=680, gw=(W-132-30)/2, gh=185, gap=30;
+  const gx=66, gy=690, gw=(W-132-30)/2, gh=182, gap=30;
   stats.forEach((stat,i)=>{
     const col=i%2, row=Math.floor(i/2);
     const bx=gx+col*(gw+gap), by=gy+row*(gh+gap);
-    x.fillStyle='rgba(255,255,255,.08)'; roundRect(x,bx,by,gw,gh,26); x.fill();
-    x.fillStyle='#fff'; x.font=RF(66); x.textAlign='left';
-    x.fillText(String(stat[0]), bx+30, by+90);
-    x.fillStyle='rgba(255,255,255,.6)'; x.font=F(800,26);
-    x.letterSpacing='1px';
-    x.fillText(String(stat[1]).toUpperCase(), bx+32, by+134);
+    x.fillStyle='rgba(255,255,255,.09)'; roundRect(x,bx,by,gw,gh,26); x.fill();
+    x.strokeStyle='rgba(255,255,255,.12)'; x.lineWidth=1.5; roundRect(x,bx,by,gw,gh,26); x.stroke();
+    x.fillStyle='#FFFFFF'; x.font=RF(70);
+    x.fillText(String(stat[0]), bx+32, by+96);
+    x.fillStyle='#9BEDBC'; x.font=F(900,26); x.letterSpacing='1.5px';
+    x.fillText(String(stat[1]).toUpperCase(), bx+34, by+140);
     x.letterSpacing='0px';
   });
 
-  // footer
-  const fy=H-90;
-  x.fillStyle='rgba(255,255,255,.5)'; x.font=F(700,28); x.textAlign='left';
+  // ---- date footer: two lines so the journey is trackable ----
+  const fy=H-118;
+  x.fillStyle='rgba(255,255,255,.92)'; x.font=F(800,32); x.textAlign='left';
   x.fillText(longDate(todayStr()), 72, fy);
+  x.fillStyle='rgba(255,255,255,.55)'; x.font=F(700,26);
+  x.fillText(`Day ${daysIn} \u00b7 started ${longDate(started)}`, 72, fy+38);
   x.textAlign='right';
-  x.fillStyle='#8FE3B0';
-  x.fillText('history in the making', W-72, fy);
+  x.fillStyle='#9BEDBC'; x.font=F(800,28);
+  x.fillText('history in the making', W-72, fy+38);
   x.textAlign='left';
 
   c.toBlob(blob=>{
@@ -1283,7 +1285,7 @@ function makeShareCard(){
     a.href=url; a.download='fatu-progress-'+todayStr()+'.png';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    toast('Card saved','Check your downloads. Save it to your photos to keep it.');
+    toast('Card saved','High-res image in your downloads. Save it to your photos to keep it.');
   },'image/png');
 }
 

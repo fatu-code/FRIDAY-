@@ -95,7 +95,7 @@
     border:1.5px solid #F0DFB8;border-radius:99px;padding:8px 14px;font-size:12px;font-weight:900;margin-top:12px}
   .editflag button{background:var(--gold);color:#fff;border-radius:99px;padding:4px 11px;font-size:11px;font-weight:900}
   .dcard{background:linear-gradient(150deg,#025B25 0%,var(--ink) 100%);border-radius:22px;
-    padding:20px;margin-bottom:16px;color:#fff;box-shadow:0 10px 28px rgba(0,77,30,.22);position:relative;overflow:hidden}
+    padding:18px 18px;margin-bottom:16px;color:#fff;box-shadow:0 10px 28px rgba(0,77,30,.22);position:relative;overflow:hidden}
   .dcard:before{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;
     border-radius:99px;background:rgba(255,255,255,.05)}
   .dcard .drow{display:flex;align-items:center;gap:12px;position:relative}
@@ -111,7 +111,6 @@
   .dcard .dstat .dtag{font-weight:900;letter-spacing:.04em}
   .dcard .dstat.amber{background:rgba(184,137,43,.32)}
   .dcard .dstat.grey{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
-  .dcard .dhint{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);margin-top:10px}
   .card{background:#fff;border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px;margin-bottom:12px}
   .card h2{font-size:21px}
   .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:7px}
@@ -899,8 +898,7 @@ function renderChrome(){
          <div class="dstat ${tagClass}"><span class="dtag">${tag}</span><span>&middot; ${note}</span></div>
        </div>
        <button class="darr" data-dayshift="1" aria-label="Next day" ${canFwd?'':'disabled'}>&#8250;</button>
-     </div>
-     <div class="dhint" style="text-align:center">Tap the date to set the day</div>`;
+     </div>`;
 }
 
 /* ================= pages ================= */
@@ -1358,11 +1356,11 @@ function makeShareCard(){
   x.fillStyle='#BFE9CE'; x.font=F(800,32);
   x.fillText(`Level ${L.lv}`, 74, 258);
 
-  // hero points, inside the green
-  x.fillStyle='#FFFFFF'; x.font=RF(210);
-  x.fillText(xp.toLocaleString(), 64, 470);
-  x.fillStyle='#9BEDBC'; x.font=F(900,40); x.letterSpacing='3px';
-  x.fillText('POINTS EARNED', 74, 524);
+  // hero points, inside the green — number baseline high, label well clear of its descenders
+  x.fillStyle='#FFFFFF'; x.font=RF(196);
+  x.fillText(xp.toLocaleString(), 64, 452);
+  x.fillStyle='#9BEDBC'; x.font=F(900,38); x.letterSpacing='3px';
+  x.fillText('POINTS EARNED', 76, 540);
   x.letterSpacing='0px';
 
   // ---------- white stat zone ----------
@@ -1391,23 +1389,21 @@ function makeShareCard(){
   // ---------- footer: PINNED to the bottom of the card ----------
   // The footer no longer follows the grid. It rests at the base, a fixed
   // distance from the bottom edge, the way a real footer does.
-  const dateY = H - 92;          // upper footer line (the date)
-  const subY  = H - 56;          // lower footer line (day + start)
-  const ruleY = H - 150;         // hairline above the footer band
-  x.strokeStyle=LINE; x.lineWidth=2;
+  const dateY = H - 84;          // date line
+  const subY  = H - 52;          // sub line
+  const ruleY = H - 132;         // hairline above the footer
+  x.strokeStyle=LINE; x.lineWidth=1.5;
   x.beginPath(); x.moveTo(72,ruleY); x.lineTo(W-72,ruleY); x.stroke();
 
-  // left: date over its sub-line
   x.textAlign='left';
-  x.fillStyle=INK; x.font=F(800,33);
+  x.fillStyle=INK; x.font=F(800,27);
   x.fillText(longDate(todayStr()), 72, dateY);
-  x.fillStyle=MUT; x.font=F(700,26);
+  x.fillStyle=MUT; x.font=F(700,22);
   x.fillText(`Day ${daysIn} \u00b7 started ${longDate(started)}`, 72, subY);
 
-  // right: tagline, centred between the two footer lines
   x.textAlign='right';
-  x.fillStyle=GO; x.font=F(800,29);
-  x.fillText('history in the making', W-72, (dateY+subY)/2 + 4);
+  x.fillStyle=GO; x.font=F(800,24);
+  x.fillText('history in the making', W-72, (dateY+subY)/2 + 2);
   x.textAlign='left';
 
   c.toBlob(blob=>{

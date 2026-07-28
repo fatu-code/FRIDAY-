@@ -458,10 +458,9 @@ function workXP(){
     });
     xp+=Math.min(24,Math.floor(got('steps',d)/500)*2);
     if(setDone(d)) xp+=15;
-    { const fh=fastHours(d);
-      if(fh>=state.cfg.fastFull) xp+=25;
-      else if(fh>=state.cfg.fastGood) xp+=18;
-      else if(fh>=state.cfg.fastFloor) xp+=12; }
+    { const fh=fastHours(d), floor=state.cfg.fastFloor;
+      // 12 points for reaching 12h, then +4 for every extra whole hour (13,14,15,16,17,18...), capped at 20h
+      if(fh>=floor){ const extra=Math.min(8, Math.floor(fh)-floor); xp += 12 + extra*4; } }
     if(!sugarOverride(d)){ xp += sugarTicks(d).length*5; if(sugarState(d)==='clean') xp+=10; }
     xp+=Math.min(state.cfg.waterGoal,water(d))*2;
   });
@@ -1286,9 +1285,8 @@ function progPage(){
       <tr><td>Clearing a whole set</td><td>15</td></tr>
       <tr><td>Steps, per 500 walked</td><td>2</td></tr>
       <tr><td>A rest day you chose</td><td>4</td></tr>
-      <tr><td>A 12-hour fast</td><td>12</td></tr>
-      <tr><td>A 14-hour fast</td><td>18</td></tr>
-      <tr><td>A full 16-hour fast</td><td>25</td></tr>
+      <tr><td>Reaching a 12-hour fast</td><td>12</td></tr>
+      <tr><td>Each extra hour beyond 12</td><td>+4</td></tr>
       <tr><td>Each sugar source beaten</td><td>5</td></tr>
       <tr><td>All four beaten (clean day)</td><td>+10</td></tr>
       <tr><td>Water, per glass</td><td>2</td></tr>

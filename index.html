@@ -710,19 +710,18 @@ function missionsFor(d){
     have:Math.min(steps,goal), need:goal};
 
   const fh=Math.floor(fastHours(d));
-  const fastM={n:'Fast 12 hours', pts:20, have:Math.min(fh,state.cfg.fastFloor), need:state.cfg.fastFloor};
-  const fullFastM={n:'Reach a full 16h fast', pts:25, have:Math.min(fh,state.cfg.fastFull), need:state.cfg.fastFull};
+  const fastM={n:'Fast at least 12 hours', pts:20, have:Math.min(fh,state.cfg.fastFloor), need:state.cfg.fastFloor};
   const sugarM={n:'Beat all '+NSUGAR()+' sugar sources', pts:20, have:sugarOverride(d)?0:sugarTicks(d).length, need:NSUGAR()};
   const waterM={n:'Drink '+state.cfg.waterGoal+' glasses of water', pts:15, have:Math.min(water(d),state.cfg.waterGoal), need:state.cfg.waterGoal};
   if(!sel){
     return [
       {n:'Choose today: Juu, Chini or Rest', pts:10, have:0, need:1},
-      stepMission, fastM, fullFastM, sugarM, waterM
+      stepMission, fastM, sugarM, waterM
     ];
   }
   if(sel==='rest'){
     return [
-      stepMission, fastM, fullFastM, sugarM, waterM,
+      stepMission, fastM, sugarM, waterM,
       {n:'Rest day taken', pts:10, have:1, need:1}
     ];
   }
@@ -733,7 +732,7 @@ function missionsFor(d){
     {n:'Start the '+setName(d)+' set', pts:10, have:Math.min(started,1), need:1},
     {n:'Finish all '+list.length+' exercises', pts:40, have:atTarget, need:list.length},
     stepMission,
-    fastM, fullFastM, sugarM, waterM
+    fastM, sugarM, waterM
   ];
 }
 function missionXP(){

@@ -376,7 +376,7 @@ const DEFAULT_CFG={
   stepGoal:2000,
   restTarget:2,
   waterGoal:4,
-  fastFloor:12, fastGood:14, fastFull:16,
+  fastFloor:12, fastGood:14, fastFull:16, breakHour:14,
   sugarList:['No soda','No sugar in tea','No sweets or biscuits','No packaged juice or energy drinks'],
   per:Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.per])),
   year:Object.assign({steps:400000},Object.fromEntries(Object.entries(EX).map(([k,v])=>[k,v.year])))
@@ -557,24 +557,28 @@ const BADGES=[
 /* ================= diet ================= */
 const water=d=>Number((state.logs[d]||{}).water)||0;
 
-// ---- fast: two stamps. fastStop = epoch ms you finished your last meal (previous night),
-//      fastStart = epoch ms you broke the fast. Hours = the gap. Live-counts until you break it. ----
-const nowMs=()=>Date.now();
+// ---- fast: you type the time you stopped eating the night before (stopHHMM, e.g. '22:00').
+//      The fast runs from then to your break time (breakHour, default 14:00) and counts for
+//      the day you break it. Stop at 22:00 -> break 14:00 = 16h. Stop at midnight = 14h. ----
+const breakHour=()=>state.cfg.breakHour;   // hour of day (0-23) you break the fast, e.g. 14
 function fastHours(d){
   const l=state.logs[d]||{};
-  if(!l.fastStop) return 0;
-  const end = l.fastStart || (d===todayStr() ? nowMs() : l.fastStop); // live until broken; past days need both
-  const h=(end-l.fastStop)/3600000;
-  return h>0 ? h : 0;
+  if(!l.stopHHMM) return 0;
+  const m=/^(\d{1,2}):(\d{2})$/.exec(l.stopHHMM); if(!m) return 0;
+  const stopMin=Number(m[1])*60+Number(m[2]);
+  const breakMin=breakHour()*60;
+  // stop time is the evening before the break. hours = from stop, forward across midnight, to break.
+  let mins=(24*60 - stopMin) + breakMin;      // e.g. (1440-1320)+840 = 960 = 16h for 22:00 -> 14:00
+  if(stopMin<=breakMin) mins = breakMin - stopMin;  // safety: same-day stop before break
+  return Math.max(0, mins/60);
 }
-const fastRunning=d=>{const l=state.logs[d]||{};return l.fastStop&&!l.fastStart;};
 function fastTier(h){
   const f=state.cfg;
   if(h>=f.fastFull) return {k:3,label:'Full 16:8',note:'Best tier'};
   if(h>=f.fastGood) return {k:2,label:'Strong fast',note:''};
   if(h>=f.fastFloor) return {k:1,label:'Solid fast',note:''};
-  if(h>0) return {k:0,label:'Fasting',note:'Keep going'};
-  return {k:-1,label:'Not started',note:''};
+  if(h>0) return {k:0,label:'Short fast',note:''};
+  return {k:-1,label:'Not logged',note:''};
 }
 const fastKept=d=>fastHours(d)>=state.cfg.fastFloor;
 
@@ -982,69 +986,56 @@ function corePage(){
 
 function dietPage(){
   const d=viewDay;
-  const h=fastHours(d), t=fastTier(h), running=fastRunning(d);
-  const hShown = h>0 ? (h<10 ? h.toFixed(1) : Math.round(h)) : '\u2013';
   const g=water(d), goal=state.cfg.waterGoal;
   const sug=sugarState(d);
   const run=sugarStreak(), best=bestSugarStreak(), cheats=cheatsThisMonth();
   const l=state.logs[d]||{};
-  const hhmm=ms=>new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ms));
 
-  const marks=[state.cfg.fastFloor,state.cfg.fastGood,state.cfg.fastFull];
-  const maxH=18;
-  const fastBar=`<div class="fastbar">
-    <div class="fastfill k${Math.max(0,t.k)}" style="width:${Math.min(100,h/maxH*100)}%"></div>
-    ${marks.map(m=>`<u style="left:${m/maxH*100}%" class="${h>=m?'lit':''}"><span>${m}h</span></u>`).join('')}
-  </div>`;
-
-  // three states: not started, running (waiting to break), broken (has both stamps)
-  let fastBody;
-  if(!l.fastStop){
-    fastBody = `<p class="lede" style="margin-top:8px">Two taps. One when you finish your last meal tonight, one when you eat again tomorrow.</p>
-      <button class="allbtn" data-faststop="1">I've finished eating</button>`;
-  } else if(running){
-    fastBody = `<div class="fasthero">
-        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
-        <div class="fh-lab"><b>${t.label}</b><span>Since ${hhmm(l.fastStop)}, still going</span></div>
-      </div>
-      ${fastBar}
-      <button class="allbtn" data-faststart="1" style="margin-top:18px">I'm eating now &middot; break the fast</button>
-      <div class="ghostrow"><button class="ghost" data-fixstop="1">Change when I stopped</button>
-        <button class="ghost" data-clearfast="1">Clear</button></div>`;
-  } else {
-    fastBody = `<div class="fasthero">
-        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
-        <div class="fh-lab"><b>${t.label}</b><span>${hhmm(l.fastStop)} \u2192 ${hhmm(l.fastStart)}</span></div>
-      </div>
-      ${fastBar}
-      <div class="ghostrow" style="margin-top:16px"><button class="ghost" data-fixstop="1">Edit times</button>
-        <button class="ghost" data-clearfast="1">Clear</button></div>`;
-  }
-
+  // ---- water ----
   const glasses=[...Array(Math.max(goal,g))].map((_,i)=>
     `<div class="glass ${i<g?'full':''}" data-water="${i+1}"></div>`).join('');
 
+  // ---- sugar wins ----
   const ticks=sugarTicks(d), override=sugarOverride(d);
   const nTicked=ticks.length, nTotal=NSUGAR();
-  // the four wins, each tappable and worth points; disabled look when the day is a cheat/slip
   const tickRows=state.cfg.sugarList.map((x,i)=>{
     const on=ticks.includes(i);
     return `<button class="swin ${on?'on':''} ${override?'muted':''}" data-tick="${i}">
       <span class="sbox">${on?'&#10003;':''}</span><span class="slabel">${x}</span>
       <span class="spts">+5</span></button>`;
   }).join('');
-
   const streakLabel = override==='cheat' ? 'clean, paused today'
                     : (run===1?'day clean':'days clean');
 
+  // ---- fast (single input, break at breakHour, counts for the day you break it) ----
+  const h=fastHours(d), t=fastTier(h);
+  const hShown = h>0 ? (Number.isInteger(h)?h:h.toFixed(1)) : '\u2013';
+  const bh=breakHour(), bhLabel=(bh%12===0?12:bh%12)+(bh>=12?'pm':'am');
+  const marks=[state.cfg.fastFloor,state.cfg.fastGood,state.cfg.fastFull];
+  const maxH=18;
+  const fastBar=`<div class="fastbar">
+    <div class="fastfill k${Math.max(0,t.k)}" style="width:${Math.min(100,h/maxH*100)}%"></div>
+    ${marks.map(m=>`<u style="left:${m/maxH*100}%" class="${h>=m?'lit':''}"><span>${m}h</span></u>`).join('')}
+  </div>`;
+  let fastBody;
+  if(!l.stopHHMM){
+    fastBody = `<p class="lede" style="margin-top:8px">Type the time you stopped eating last night. It counts the hours through to your ${bhLabel} break.</p>
+      <button class="allbtn" data-setstop="1">Set my stop time</button>`;
+  } else {
+    fastBody = `<div class="fasthero">
+        <div class="fh-num k${Math.max(0,t.k)}">${hShown}<em>hrs</em></div>
+        <div class="fh-lab"><b>${t.label}</b><span>Stopped ${l.stopHHMM} \u2192 broke ${bhLabel}</span></div>
+      </div>
+      ${fastBar}
+      <div class="ghostrow" style="margin-top:16px">
+        <button class="ghost" data-setstop="1">Change stop time</button>
+        <button class="ghost" data-breakhour="1">Break time (${bhLabel})</button>
+        <button class="ghost" data-clearfast="1">Clear</button>
+      </div>`;
+  }
+
   return `
-  ${pageHead('Diet','The fast sets the deficit, no sugar protects it, water carries you through.')}
-  <div class="card">
-    <div class="cap">Your fast</div>
-    <h2 style="font-size:19px">${!l.fastStop?'Start your fast':(running?'Fasting now':'Today\u2019s fast')}</h2>
-    ${fastBody}
-    <p class="fasttiers">12h solid \u00b7 14h strong \u00b7 16h full 16:8</p>
-  </div>
+  ${pageHead('Diet','No sugar protects the deficit, water carries you through, the fast sets it.')}
 
   <div class="card ${sug==='clean'?'clean':''} ${sug==='slip'?'slipped':''} ${sug==='cheat'?'cheated':''}">
     <div class="cap">No-sugar streak</div>
@@ -1077,8 +1068,10 @@ function dietPage(){
   </div>
 
   <div class="card">
-    <div class="cap">How this adds up</div>
-    <p class="lede" style="margin-top:0">A fast of twelve hours or more is 15 points. Each sugar source you beat is 5, and beating all four adds 10 more \u2014 thirty for a fully clean day. Every glass of water is 2. Small wins, all day long.</p>
+    <div class="cap">Your fast</div>
+    <h2 style="font-size:19px">${!l.stopHHMM?'Log last night\u2019s fast':'Today\u2019s fast'}</h2>
+    ${fastBody}
+    <p class="fasttiers">12h solid \u00b7 14h strong \u00b7 16h full 16:8</p>
   </div>`;
 }
 
@@ -1335,38 +1328,28 @@ function wire(){
     if(state.logs[viewDay]) delete state.logs[viewDay].steps;
     if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];
     await save(); render();};
-  // ---- two-tap fast ----
+  // ---- fast: one input, the stop time. break time is fixed (default 2pm). ----
   const ensure=()=>{state.logs[viewDay]=state.logs[viewDay]||{};return state.logs[viewDay];};
   const tidy=()=>{if(state.logs[viewDay]&&!Object.keys(state.logs[viewDay]).length) delete state.logs[viewDay];};
-  // parse a "HH:MM" for today/yesterday into an epoch ms in Kampala terms (approx: local device offset)
-  function stampFromHHMM(str,assumeYesterday){
-    const m=/^(\d{1,2}):(\d{2})$/.exec(str.trim()); if(!m) return null;
-    const hh=Number(m[1]), mm=Number(m[2]); if(hh>23||mm>59) return null;
-    const base=new Date();
-    base.setHours(hh,mm,0,0);
-    if(assumeYesterday) base.setDate(base.getDate()-1);
-    return base.getTime();
-  }
-  const fstop=document.querySelector('[data-faststop]');
-  if(fstop) fstop.onclick=async()=>{ ensure().fastStop=nowMs(); await save(); render();
-    toast('Fast started','The clock is running. Break it when you eat tomorrow.');};
-  const fstart=document.querySelector('[data-faststart]');
-  if(fstart) fstart.onclick=async()=>{
-    ensure().fastStart=nowMs(); await save(); render(); checkNewBadges();
-    const t=fastTier(fastHours(viewDay));
-    if(t.k>=1) toast(t.label+'!', Math.round(fastHours(viewDay))+' hours. Well held.');};
-  const fx=document.querySelector('[data-fixstop]');
-  if(fx) fx.onclick=async()=>{
-    const cur=state.logs[viewDay]&&state.logs[viewDay].fastStop;
-    const def=cur?new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(cur)):'22:00';
-    const v=prompt('When did you actually stop eating last night? 24-hour time, e.g. 22:00',def);
+  const ss=document.querySelector('[data-setstop]');
+  if(ss) ss.onclick=async()=>{
+    const cur=(state.logs[viewDay]||{}).stopHHMM||'22:00';
+    const v=prompt('What time did you stop eating last night? 24-hour time, e.g. 22:00 for 10pm.',cur);
     if(v===null) return;
-    const ms=stampFromHHMM(v,true);   // stopping is the previous evening
-    if(!ms){alert('Enter it like 22:00.');return;}
-    ensure().fastStop=ms; await save(); render();};
+    const m=/^(\d{1,2}):(\d{2})$/.exec(v.trim());
+    if(!m||Number(m[1])>23||Number(m[2])>59){alert('Enter it like 22:00.');return;}
+    ensure().stopHHMM=(m[1].padStart(2,'0'))+':'+m[2];
+    await save(); render(); checkNewBadges();
+    const t=fastTier(fastHours(viewDay));
+    if(t.k>=1) toast(t.label+'!', Math.round(fastHours(viewDay))+' hours since your last meal. Well held.');};
+  const bhr=document.querySelector('[data-breakhour]');
+  if(bhr) bhr.onclick=async()=>{
+    const v=prompt('What time do you usually break the fast? 24-hour, e.g. 14 for 2pm.',state.cfg.breakHour);
+    const n=Number(v);
+    if(v!==null && n>=0 && n<=23){ state.cfg.breakHour=Math.round(n); await save(); render(); }};
   const cf=document.querySelector('[data-clearfast]');
   if(cf) cf.onclick=async()=>{
-    if(state.logs[viewDay]){delete state.logs[viewDay].fastStop; delete state.logs[viewDay].fastStart;}
+    if(state.logs[viewDay]) delete state.logs[viewDay].stopHHMM;
     tidy(); await save(); render();};
 
   // tap a single win: toggle that item; clears any cheat/slip override
@@ -1481,7 +1464,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
-setInterval(()=>{ if(page==='diet' && fastRunning(viewDay)) render(); }, 60000);
 load();
 </script>
 </body>

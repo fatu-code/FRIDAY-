@@ -94,21 +94,24 @@
   .editflag{display:inline-flex;align-items:center;gap:8px;background:#FBF4E6;color:var(--gold);
     border:1.5px solid #F0DFB8;border-radius:99px;padding:8px 14px;font-size:12px;font-weight:900;margin-top:12px}
   .editflag button{background:var(--gold);color:#fff;border-radius:99px;padding:4px 11px;font-size:11px;font-weight:900}
-  .daynav{display:flex;align-items:stretch;gap:8px;margin-bottom:16px}
-  .arrow{width:46px;flex-shrink:0;background:#fff;border:1.5px solid var(--line);color:var(--ink);
-    border-radius:16px;font-size:17px;line-height:1}
-  .arrow:hover:not(:disabled){background:var(--mint);border-color:var(--mint)}
-  .arrow:disabled{color:var(--line);cursor:default}
-  .daymain{flex:1;min-width:0;background:#fff;border:1.5px solid var(--line);border-radius:18px;
-    padding:14px 16px;text-align:left;box-shadow:var(--shadow)}
-  .daymain:hover{border-color:var(--go)}
-  .daymain .dd{font-family:'Varela Round',sans-serif;font-size:18px;color:var(--ink);line-height:1.2}
-  .daymain .ds{display:flex;align-items:center;gap:7px;margin-top:6px}
-  .daymain .ds em{font-style:normal;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--go);background:var(--wash);border-radius:99px;padding:4px 9px}
-  .daymain .ds em.grey{color:var(--rest);background:var(--paper)}
-  .daymain .ds em.amber{color:var(--gold);background:#FBF4E6}
-  .daymain .ds span{font-size:12px;font-weight:700;color:var(--muted)}
+  .dcard{background:linear-gradient(150deg,#025B25 0%,var(--ink) 100%);border-radius:22px;
+    padding:20px;margin-bottom:16px;color:#fff;box-shadow:0 10px 28px rgba(0,77,30,.22);position:relative;overflow:hidden}
+  .dcard:before{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;
+    border-radius:99px;background:rgba(255,255,255,.05)}
+  .dcard .drow{display:flex;align-items:center;gap:12px;position:relative}
+  .dcard .darr{width:38px;height:38px;flex-shrink:0;border-radius:99px;border:1.5px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.06);color:#fff;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .dcard .darr:hover:not(:disabled){background:rgba(255,255,255,.16)}
+  .dcard .darr:disabled{opacity:.3;cursor:default}
+  .dcard .dmid{flex:1;min-width:0;text-align:center;cursor:pointer}
+  .dcard .dwhen{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);opacity:.9}
+  .dcard .dbig{font-family:'Varela Round',sans-serif;font-size:23px;line-height:1.15;margin-top:4px}
+  .dcard .dstat{display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:rgba(255,255,255,.12);
+    border-radius:99px;padding:7px 14px;font-size:12px;font-weight:800}
+  .dcard .dstat .dtag{font-weight:900;letter-spacing:.04em}
+  .dcard .dstat.amber{background:rgba(184,137,43,.32)}
+  .dcard .dstat.grey{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
+  .dcard .dhint{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);margin-top:10px}
   .card{background:#fff;border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px;margin-bottom:12px}
   .card h2{font-size:21px}
   .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:7px}
@@ -318,11 +321,7 @@
 <div class="app">
 
   <div class="chrome" id="chrome">
-    <div class="daynav">
-      <button class="arrow" id="prevDay" aria-label="Previous day">&#8249;</button>
-      <button class="daymain" id="dayMain" data-openday="1"></button>
-      <button class="arrow" id="nextDay" aria-label="Next day">&#8250;</button>
-    </div>
+    <div class="dcard" id="dayMain" data-openday="1"></div>
   </div>
 
   <section class="page" id="p-home"></section>
@@ -750,7 +749,7 @@ async function pickDay(val,btn){
 document.getElementById('scrim').onclick=closeModal;
 // one delegated listener, so taps keep working after every re-render
 document.addEventListener('click',e=>{
-  const t=e.target.closest&&e.target.closest('[data-day],[data-pick],[data-opentoday],[data-openday],[data-today]');
+  const t=e.target.closest&&e.target.closest('[data-day],[data-pick],[data-opentoday],[data-openday],[data-today],[data-dayshift]');
   if(!t) return;
   if(t.hasAttribute('data-day')){
     if(page==='home') openDayModal(t.dataset.day);
@@ -761,6 +760,10 @@ document.addEventListener('click',e=>{
     openDayModal(viewDay);
   } else if(t.hasAttribute('data-today')){
     viewDay=todayStr(); render();
+  } else if(t.hasAttribute('data-dayshift')){
+    const dir=Number(t.dataset.dayshift);
+    if(dir>0 && viewDay>=addDays(todayStr(),MAXAHEAD)) return;
+    viewDay=addDays(viewDay,dir); render();
   } else {
     pickDay(t.dataset.pick,t);
   }
@@ -805,12 +808,18 @@ function renderChrome(){
   }
   const when = viewDay===todayStr() ? 'Today'
              : (viewDay<todayStr() ? 'Earlier day' : 'Coming up');
+  const canFwd = viewDay < addDays(todayStr(),MAXAHEAD);
   document.getElementById('dayMain').innerHTML=
-    `<div class="dd">${longDate(viewDay)}</div>
-     <div class="ds"><em class="${tagClass}">${tag}</em><span>${when} &middot; ${note}</span></div>`;
-
-  document.getElementById('prevDay').disabled=false;
-  document.getElementById('nextDay').disabled = viewDay >= addDays(todayStr(),MAXAHEAD);
+    `<div class="drow">
+       <button class="darr" data-dayshift="-1" aria-label="Previous day">&#8249;</button>
+       <div class="dmid" data-openday="1">
+         <div class="dwhen">${when}</div>
+         <div class="dbig">${longDate(viewDay)}</div>
+         <div class="dstat ${tagClass}"><span class="dtag">${tag}</span><span>&middot; ${note}</span></div>
+       </div>
+       <button class="darr" data-dayshift="1" aria-label="Next day" ${canFwd?'':'disabled'}>&#8250;</button>
+     </div>
+     <div class="dhint" style="text-align:center">Tap the date to set the day</div>`;
 }
 
 /* ================= pages ================= */
@@ -1082,6 +1091,11 @@ function progPage(){
   const ms=missionsFor(viewDay);
   return `
   <div class="phead"><h1>Progress</h1><p>Your standing, your targets for the year, and every badge.</p></div>
+  <div class="card sharecard">
+    <div class="cap">Share your progress</div>
+    <p class="lede" style="margin-top:0">Turn today\u2019s numbers into a clean card you can save to your phone. History in the making.</p>
+    <button class="allbtn" data-sharecard="1">Create my card</button>
+  </div>
   <div class="card">
     <div class="cap">Standing</div>
     <div class="rank">
@@ -1181,6 +1195,96 @@ function progPage(){
       </div>`).join('')}
     </div>
   </div>`;
+}
+
+/* ================= shareable progress card ================= */
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function makeShareCard(){
+  const W=1080, H=1350, s=2;              // portrait, phone-friendly, 2x for crispness
+  const c=document.createElement('canvas'); c.width=W*s; c.height=H*s;
+  const x=c.getContext('2d'); x.scale(s,s);
+
+  // gather the numbers
+  const xp=totalXP(), L=levelFromXP(xp);
+  const done=sessions(), st=streak(), sug=bestSugarStreak();
+  const steps=totalAll('steps'), gotB=badgeState().filter(b=>b.got).length;
+  const started=Object.keys(state.logs).sort()[0];
+  const daysIn = started ? Math.round((parse(todayStr())-parse(started))/86400000)+1 : 1;
+
+  // background
+  const g=x.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'#025B25'); g.addColorStop(1,'#003E18');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  // soft circle accents
+  x.fillStyle='rgba(255,255,255,.05)';
+  x.beginPath(); x.arc(W-90,150,220,0,7); x.fill();
+  x.beginPath(); x.arc(70,H-120,160,0,7); x.fill();
+
+  const F=(w,sz)=>`${w} ${sz}px Nunito, system-ui, sans-serif`;
+  const RF=sz=>`400 ${sz}px "Varela Round", Nunito, sans-serif`;
+
+  // header
+  x.fillStyle='#8FE3B0'; x.font=F(800,30); x.textBaseline='alphabetic';
+  x.letterSpacing='6px';
+  x.fillText("FATU\u2019S HEALTH TRACKER", 72, 130);
+  x.letterSpacing='0px';
+  x.fillStyle='#fff'; x.font=RF(72);
+  x.fillText(rankFor(L.lv), 72, 210);
+  x.fillStyle='rgba(255,255,255,.7)'; x.font=F(700,30);
+  x.fillText(`Level ${L.lv} \u00b7 Day ${daysIn} of the journey`, 74, 258);
+
+  // divider
+  x.strokeStyle='rgba(255,255,255,.14)'; x.lineWidth=2;
+  x.beginPath(); x.moveTo(72,310); x.lineTo(W-72,310); x.stroke();
+
+  // big point number
+  x.fillStyle='#fff'; x.font=RF(230); x.textAlign='left';
+  x.fillText(xp.toLocaleString(), 62, 540);
+  x.fillStyle='#8FE3B0'; x.font=F(800,40);
+  x.letterSpacing='2px';
+  x.fillText('POINTS EARNED', 74, 600);
+  x.letterSpacing='0px';
+
+  // stat grid
+  const stats=[
+    [done, 'sets completed'],
+    [st, 'day streak'],
+    [sug, 'best no-sugar run'],
+    [steps.toLocaleString(), 'steps walked'],
+    [gotB, 'badges earned'],
+    [L.lv, 'level reached']
+  ];
+  const gx=66, gy=680, gw=(W-132-30)/2, gh=185, gap=30;
+  stats.forEach((stat,i)=>{
+    const col=i%2, row=Math.floor(i/2);
+    const bx=gx+col*(gw+gap), by=gy+row*(gh+gap);
+    x.fillStyle='rgba(255,255,255,.08)'; roundRect(x,bx,by,gw,gh,26); x.fill();
+    x.fillStyle='#fff'; x.font=RF(66); x.textAlign='left';
+    x.fillText(String(stat[0]), bx+30, by+90);
+    x.fillStyle='rgba(255,255,255,.6)'; x.font=F(800,26);
+    x.letterSpacing='1px';
+    x.fillText(String(stat[1]).toUpperCase(), bx+32, by+134);
+    x.letterSpacing='0px';
+  });
+
+  // footer
+  const fy=H-90;
+  x.fillStyle='rgba(255,255,255,.5)'; x.font=F(700,28); x.textAlign='left';
+  x.fillText(longDate(todayStr()), 72, fy);
+  x.textAlign='right';
+  x.fillStyle='#8FE3B0';
+  x.fillText('history in the making', W-72, fy);
+  x.textAlign='left';
+
+  c.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='fatu-progress-'+todayStr()+'.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast('Card saved','Check your downloads. Save it to your photos to keep it.');
+  },'image/png');
 }
 
 /* ================= render ================= */
@@ -1314,6 +1418,9 @@ function wire(){
       if(v===null) break;
       if(Number(v)>0) state.cfg.per[k]=Math.round(Number(v));}
     await save(); render();};
+  const sc=document.querySelector('[data-sharecard]');
+  if(sc) sc.onclick=()=>makeShareCard();
+
   const ex=document.querySelector('[data-export]');
   if(ex) ex.onclick=()=>{
     const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
@@ -1355,10 +1462,7 @@ function wire(){
     await save(); render();};
 }
 
-document.getElementById('prevDay').onclick=()=>{viewDay=addDays(viewDay,-1); render();};
-document.getElementById('nextDay').onclick=()=>{
-  if(viewDay>=addDays(todayStr(),MAXAHEAD)) return;
-  viewDay=addDays(viewDay,1); render();};
+
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>{
   page=b.dataset.go; window.scrollTo({top:0,behavior:'smooth'}); render();});
 
